@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 import time
 import random
 
@@ -72,6 +73,14 @@ class InstagramBot:
                 EC.presence_of_element_located((By.XPATH, "//div[@role='dialog']")))
             time.sleep(2)
 
+            # Find the search bar in the followers modal
+            search_bar = followers_modal.find_element(By.XPATH, "//input[@aria-label='Search input']")
+
+            # Clear the search bar and input 'a' using ActionChains
+            action = ActionChains(self.driver)
+            action.click(search_bar).send_keys('a').perform()
+            time.sleep(random.uniform(10, 12))  # Wait for the search results to load
+
             followers = set()
             last_height = self.driver.execute_script(
                 "return arguments[0].scrollHeight", followers_modal)
@@ -81,7 +90,7 @@ class InstagramBot:
                     "arguments[0].scrollTop = arguments[0].scrollHeight", followers_modal)
                 time.sleep(random.uniform(2, 3))
 
-                # Updated XPath based on the structure you provided
+                # Collect usernames
                 followers_elements = followers_modal.find_elements(By.XPATH, "//a[contains(@class, '_a6hd')]/div/div/span")
                 print(f"Found {len(followers_elements)} followers elements")
 
