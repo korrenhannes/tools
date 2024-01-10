@@ -50,20 +50,11 @@ class InstagramBot:
                 except Exception as e:
                     raise Exception(f"Unable to find or click on followers link for {user}: {e}")
 
-                try:
-                    followers_list = WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.XPATH, "//div[@role='dialog']//ul")))
-                    number_of_followers = self.extract_number_of_followers(user)
-                except Exception as e:
-                    raise Exception(f"Unable to locate followers list for {user}: {e}")
-
-                print(f"Collecting {number_of_followers} followers of {user}")
-                followers[user] = self.collect_usernames(followers_list, number_of_followers)
+                followers[user] = self.collect_usernames(user)
             except Exception as e:
                 print(f"Error processing user {user}: {e}")
 
         return followers
-
 
     def extract_number_of_followers(self, user):
         try:
@@ -74,38 +65,53 @@ class InstagramBot:
             print(f"Error extracting follower count for {user}: {e}")
             return 0
 
-    def collect_usernames(self, followers_list, number_of_followers):
-        last_height, current_height = 0, 1
-        scroll_pause = random.uniform(0.5, 1.0)
-        usernames = set()
+    def collect_usernames(self, user):
+        try:
+            # Wait for the followers modal to appear
+            followers_modal = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//div[@role='dialog']//ul")))
+            time.sleep(2)
 
-        while len(usernames) < number_of_followers:
-            try:
+            # Scroll the modal to load followers
+            self.scroll_followers_modal(followers_modal)
+
+            # Extract usernames
+            followers = []
+            while True:
+                # Find all the anchor tags in the followers list
+                current_usernames = followers_modal.find_elements(By.XPATH, ".//li//a[contains(@class, 'notranslate')]")
+                for follower in current_usernames:
+                    # Extract the username from the href attribute of the anchor tag
+                    href = follower.get_attribute('href')
+                    if href and '/' in href:
+                        username = href.split('/')[-2]
+                        if username not in followers:
+                            followers.append(username)
+
+                # Scroll down the modal
                 self.driver.execute_script(
-                    "arguments[0].scrollTo(0, arguments[0].scrollHeight);", followers_list)
-                time.sleep(scroll_pause)
+                    "arguments[0].scrollTo(0, arguments[0].scrollHeight);", followers_modal)
+                time.sleep(random.uniform(0.5, 1.0))
 
-                current_usernames = followers_list.find_elements(
-                    By.XPATH, "//span[contains(@class, '_ap3a') and contains(@class, '_aaco')]")
-
-                for username_element in current_usernames:
-                    username = username_element.text
-                    if username:
-                        usernames.add(username)
-
-                print(f"Found {len(usernames)} unique usernames so far.")
-
-                last_height = current_height
-                current_height = self.driver.execute_script(
-                    "return arguments[0].scrollHeight;", followers_list)
-
-                if last_height == current_height:
+                # Check if the end of the list has been reached
+                new_height = self.driver.execute_script(
+                    "return arguments[0].scrollHeight;", followers_modal)
+                if new_height == current_height:
                     break
-            except Exception as e:
-                print(f"Error during scrolling: {e}")
-                break
+                current_height = new_height
 
-        return list(usernames)
+            return followers
+        except Exception as e:
+            print(f"Error collecting usernames for {user}: {e}")
+            return []
+
+    def scroll_followers_modal(self, modal):
+        last_height, current_height = 0, 1
+        while last_height != current_height:
+            last_height = current_height
+            current_height = self.driver.execute_script(
+                "arguments[0].scrollTo(0, arguments[0].scrollHeight); return arguments[0].scrollHeight;", modal)
+            time.sleep(random.uniform(0.5, 1.0))
 
 
 if __name__ == "__main__":
