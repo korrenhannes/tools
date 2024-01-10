@@ -19,7 +19,7 @@ class InstagramBot:
     def login(self):
         try:
             self.driver.get('https://www.instagram.com/accounts/login/')
-            time.sleep(random.uniform(3, 5))  # Random delay for more human-like behavior
+            time.sleep(random.uniform(3, 5))
 
             username_input = WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.NAME, 'username')))
@@ -30,7 +30,7 @@ class InstagramBot:
             password_input.send_keys(self.password)
             password_input.send_keys(Keys.RETURN)
 
-            time.sleep(random.uniform(5, 7))  # Wait for the main page to load
+            time.sleep(random.uniform(5, 7))
         except Exception as e:
             print(f"Error during login: {e}")
             self.close_browser()
@@ -42,14 +42,20 @@ class InstagramBot:
                 self.driver.get(f'https://www.instagram.com/{user}/')
                 time.sleep(random.uniform(2, 3))
 
-                followers_link = WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, 'followers')))
-                followers_link.click()
-                time.sleep(random.uniform(2, 3))
+                try:
+                    followers_link = WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, 'followers')))
+                    followers_link.click()
+                    time.sleep(random.uniform(2, 3))
+                except Exception as e:
+                    raise Exception(f"Unable to find or click on followers link for {user}: {e}")
 
-                followers_list = WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.XPATH, "//div[@role='dialog']//ul")))
-                number_of_followers = self.extract_number_of_followers(user)
+                try:
+                    followers_list = WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.XPATH, "//div[@role='dialog']//ul")))
+                    number_of_followers = self.extract_number_of_followers(user)
+                except Exception as e:
+                    raise Exception(f"Unable to locate followers list for {user}: {e}")
 
                 print(f"Collecting {number_of_followers} followers of {user}")
                 followers[user] = self.collect_usernames(followers_list, number_of_followers)
@@ -57,6 +63,7 @@ class InstagramBot:
                 print(f"Error processing user {user}: {e}")
 
         return followers
+
 
     def extract_number_of_followers(self, user):
         try:
@@ -74,37 +81,45 @@ class InstagramBot:
 
         while len(usernames) < number_of_followers:
             try:
-                current_usernames = followers_list.find_elements(By.TAG_NAME, 'a')
-                for username in current_usernames:
-                    usernames.add(username.text)
+                self.driver.execute_script(
+                    "arguments[0].scrollTo(0, arguments[0].scrollHeight);", followers_list)
+                time.sleep(scroll_pause)
+
+                current_usernames = followers_list.find_elements(
+                    By.XPATH, "//span[contains(@class, '_ap3a') and contains(@class, '_aaco')]")
+
+                for username_element in current_usernames:
+                    username = username_element.text
+                    if username:
+                        usernames.add(username)
+
+                print(f"Found {len(usernames)} unique usernames so far.")
 
                 last_height = current_height
                 current_height = self.driver.execute_script(
-                    "arguments[0].scrollTo(0, arguments[0].scrollHeight); return arguments[0].scrollHeight;", followers_list)
-                time.sleep(scroll_pause)
+                    "return arguments[0].scrollHeight;", followers_list)
 
                 if last_height == current_height:
-                    break  # Reached the bottom of the list
+                    break
             except Exception as e:
                 print(f"Error during scrolling: {e}")
                 break
 
         return list(usernames)
 
+
 if __name__ == "__main__":
-    USERNAME = 'joshclipit'  # Your Instagram username
-    PASSWORD = 'Kokoman10'  # Your Instagram password
-    TARGET_USERS = ['kindweirdwild', 'wordofmachine']  # The users whose followers you want to scrape
+    USERNAME = 'joshclipit'
+    PASSWORD = 'Kokoman10'
+    TARGET_USERS = ['kindweirdwild', 'wordofmachine']
 
     bot = InstagramBot(USERNAME, PASSWORD, TARGET_USERS)
     bot.login()
     followers = bot.get_followers()
     bot.close_browser()
 
-    # Write followers to a file
     with open("followers.txt", "w") as file:
         for user, usernames in followers.items():
-            print(f"Writing followers of {user} to file...")
             file.write(f"{user} followers ({len(usernames)}):\n")
             for username in usernames:
                 file.write(username + "\n")
