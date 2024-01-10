@@ -151,9 +151,9 @@ class Bot:
             return False
 
 def init():
-    users = ['jlautman1', 'seanben_david']
+    users = ['kindweirdwild', 'seanben_david']
     message_ = "final test"
-    bot = Bot('korrenhannes', 'Kokoman10', users, message_)
+    bot = Bot('joshclipit', 'Kokoman10', users, message_)
     input("DONE")
 
 init()
