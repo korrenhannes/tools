@@ -74,27 +74,26 @@ class InstagramBot:
         try:
             print(f"Collecting followers for {user}")
 
+            # Initial navigation to user's profile and open followers modal
+            self.driver.get(f'https://www.instagram.com/{user}/')
+            time.sleep(random.uniform(5, 8))
+            followers_link = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, 'followers')))
+            followers_link.click()
+            time.sleep(random.uniform(5, 8))
+
+            followers_modal = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//div[@role='dialog']")))
+
             for letter in alphabet:
-                # Navigate to user's profile and open followers modal
-                self.driver.get(f'https://www.instagram.com/{user}/')
-                time.sleep(random.uniform(5, 8))  # Increased time before opening followers modal
-                followers_link = WebDriverWait(self.driver, 20).until(
-                    EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, 'followers')))
-                followers_link.click()
-                time.sleep(random.uniform(5, 8))  # Increased time after clicking followers modal
-
-                followers_modal = WebDriverWait(self.driver, 20).until(
-                    EC.presence_of_element_located((By.XPATH, "//div[@role='dialog']")))
-
                 # Find the search bar in the followers modal
                 search_bar = followers_modal.find_element(By.XPATH, "//input[@aria-label='Search input']")
                 action = ActionChains(self.driver)
                 action.click(search_bar).perform()
-                time.sleep(random.uniform(7, 10))  # Pause before clearing the search bar
-                action.send_keys(Keys.CONTROL + "a").perform()  # Clear previous search
-                time.sleep(random.uniform(5, 8))  # Pause before typing the next letter
+                action.send_keys(Keys.CONTROL + "a").send_keys(Keys.BACKSPACE).perform()  # Clear search bar
+                time.sleep(random.uniform(2, 4))
                 action.send_keys(letter).perform()
-                time.sleep(random.uniform(20, 25))  # Increased wait time for search results to load
+                time.sleep(random.uniform(20, 25))  # Wait for search results to load
 
                 last_height = self.driver.execute_script(
                     "return arguments[0].scrollHeight", followers_modal)
@@ -102,7 +101,7 @@ class InstagramBot:
                 while True:
                     self.driver.execute_script(
                         "arguments[0].scrollTop = arguments[0].scrollHeight", followers_modal)
-                    time.sleep(random.uniform(8, 10))  # Increased time for scrolling
+                    time.sleep(random.uniform(8, 10))
 
                     # Collect usernames
                     followers_elements = followers_modal.find_elements(By.XPATH, "//a[contains(@class, '_a6hd')]/div/div/span")
@@ -118,18 +117,19 @@ class InstagramBot:
                         break
                     last_height = new_height
 
-                    # Check if new usernames are loaded
                     if not followers_elements:
                         print(f"No new followers found for letter '{letter}'")
                         break
 
-                    # Pause between each check
                     time.sleep(random.uniform(3, 5))
 
-                # Close the followers modal before the next letter
-                close_button = followers_modal.find_element(By.XPATH, "//button[contains(@class, 'wpO6b')]")
-                close_button.click()
-                time.sleep(random.uniform(4, 6))  # Pause after closing the modal
+                # Pause before closing and reopening the modal
+                time.sleep(random.uniform(2, 4))
+
+            # Close the followers modal after all letters are processed
+            close_button = followers_modal.find_element(By.XPATH, "//button[contains(@class, 'wpO6b')]")
+            close_button.click()
+            time.sleep(random.uniform(4, 6))
 
         except Exception as e:
             print(f"Error collecting usernames for {user}: {e}")
