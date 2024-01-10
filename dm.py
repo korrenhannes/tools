@@ -40,74 +40,89 @@ class Bot:
         # Handling pop-ups after login
         self.close_popups()
 
-        # Navigate to direct messages
-        self.navigate_to_messages()
-
         # Send messages
         self.send_messages()
 
     def close_popups(self):
         time.sleep(5)  # Allow time for any popups to appear
 
-        # First pop-up: Try clicking on the Instagram logo to close the pop-up
+        # Attempt to close the first pop-up
         instagram_logo_xpath = "//a[contains(@href, '/home') or contains(@href, '/')]"
-        self.dismiss_popup(instagram_logo_xpath, "Instagram logo")
+        first_popup_closed = self.dismiss_popup(instagram_logo_xpath, "Instagram logo")
 
-        # Second pop-up: Add the selector for the second pop-up you want to close
-        # Replace 'second_popup_selector' with the actual selector for the second pop-up
-        second_popup_selector = "//button[text()='Not Now']"  # This is an example selector
-        self.dismiss_popup(second_popup_selector, "Not Now for second popup")
+        # Attempt to close the second pop-up
+        second_popup_selector = "//button[text()='Not Now']"  # Update if necessary
+        second_popup_closed = self.dismiss_popup(second_popup_selector, "Not Now for second popup")
+
+        # Return True if the first popup is closed and the second either closed or not found
+        return first_popup_closed and (second_popup_closed or not second_popup_closed)
 
     def dismiss_popup(self, selector, name):
         try:
-            # Wait for the element to be clickable
             element = WebDriverWait(self.bot, 10).until(
                 EC.element_to_be_clickable((By.XPATH, selector)))
             element.click()
             print(f"Closed '{name}' popup.")
+            return True
         except Exception as e:
             print(f"No '{name}' popup found. Error: {e}")
-
-    def navigate_to_messages(self):
-        WebDriverWait(self.bot, 20).until(
-            EC.presence_of_element_located((By.XPATH, "//a[@href='/direct/inbox/']"))).click()
-        time.sleep(2)
+            return False
 
     def send_messages(self):
+        if not self.close_popups():
+            print("Failed to close all pop-ups. Cannot proceed to send messages.")
+            return
+
+        main_window_handle = self.bot.current_window_handle  # Save the handle of the main window
+
         for username in self.users:
-            compose_button = WebDriverWait(self.bot, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//button[contains(@class, 'wpO6b')]")))
-            compose_button.click()
+            # Open a new tab with the user's profile page
+            user_url = f'https://www.instagram.com/{username}/'
+            self.bot.execute_script(f"window.open('{user_url}', '_blank');")
             time.sleep(2)
 
-            to_field = WebDriverWait(self.bot, 20).until(
-                EC.presence_of_element_located((By.NAME, 'queryBox')))
-            to_field.send_keys(username)
-            time.sleep(2)
+            # Switch to the new tab
+            self.bot.switch_to.window(self.bot.window_handles[1])
+            time.sleep(3)
 
-            select_user = WebDriverWait(self.bot, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//div[@role='button']//div[contains(text(), '" + username + "')]")))
-            select_user.click()
-            time.sleep(2)
+            # Check for the presence of the message button and click it
+            self.interact_with_profile(username)
 
-            next_button = WebDriverWait(self.bot, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Next')]")))
-            next_button.click()
-            time.sleep(2)
+            # Close the new tab and switch back to the main window
+            self.bot.close()
+            self.bot.switch_to.window(main_window_handle)
 
+            # Wait a bit before processing the next user
+            time.sleep(5)
+
+    def interact_with_profile(self, username):
+        # Interact with the user's profile in the new tab
+        try:
+            message_button_xpath = "//button[contains(text(),'Message') or contains(text(),'Send Message')]"
+            message_button = WebDriverWait(self.bot, 10).until(
+                EC.element_to_be_clickable((By.XPATH, message_button_xpath)))
+            message_button.click()
+            print(f"Opened message window for {username}.")
+
+            # Type and send the message
+            self.type_and_send_message(username)
+        except Exception as e:
+            print(f"Could not open message window for {username}. Error: {e}")
+
+    def type_and_send_message(self, username):
+        # Type and send the message in the DM window
+        try:
+            message_textarea_xpath = "//textarea[@placeholder='Message…']"
             message_box = WebDriverWait(self.bot, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//textarea[@placeholder='Message…']")))
+            EC.presence_of_element_located((By.XPATH, message_textarea_xpath)))
             message_box.send_keys(self.message)
             message_box.send_keys(Keys.RETURN)
-            time.sleep(2)
-
-            back_button = WebDriverWait(self.bot, 20).until(
-                EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/direct/inbox/')]")))
-            back_button.click()
-            time.sleep(2)
+            print(f"Message sent to {username}.")
+        except Exception as e:
+            print(f"Could not send message to {username}. Error: {e}")
 
 def init():
-    users = ['User_name', 'User_name ']
+    users = ['jlautman1', 'seanben_david']
     message_ = "final test"
     bot = Bot('korrenhannes', 'Kokoman10', users, message_)
     input("DONE")
