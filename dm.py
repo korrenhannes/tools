@@ -96,35 +96,29 @@ class Bot:
             time.sleep(5)
 
     def interact_with_profile(self, username):
-        # Interact with the user's profile in the new tab
         try:
-            # Adjust the XPath to target the Message button based on the provided class
             message_button_xpath = "//div[contains(@class, 'x1i10hfl') and contains(text(), 'Message')]"
             message_button = WebDriverWait(self.bot, 10).until(
                 EC.element_to_be_clickable((By.XPATH, message_button_xpath)))
             message_button.click()
-            print(f"Opened message window for {username}.")
-
-            # Type and send the message
+            print(f"Clicked on message button for {username}. Waiting for message window to stabilize...")
+            time.sleep(5)  # Wait for the message window to be fully loaded
             self.type_and_send_message(username)
         except Exception as e:
-            print(f"Could not open message window for {username}. Error: {e}")
+            print(f"Could not interact with {username}'s profile. Error: {e}")
 
     def type_and_send_message(self, username):
-        # Type and send the message in the DM window
         try:
-            # Adjust the selector to target the message input area based on the provided class
             message_input_selector = "div[contenteditable='true'][data-lexical-editor='true']"
             message_box = WebDriverWait(self.bot, 20).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, message_input_selector)))
-            
-            # Clear the message box, type the message, and send it
-            message_box.clear()
+            print(f"Found message input for {username}. Sending message...")
+            message_box.click()
             message_box.send_keys(self.message)
             message_box.send_keys(Keys.RETURN)
             print(f"Message sent to {username}.")
         except Exception as e:
-            print(f"Could not send message to {username}. Error: {e}")
+            print(f"Error sending message to {username}: {e}")
 
 def init():
     users = ['jlautman1', 'seanben_david']
