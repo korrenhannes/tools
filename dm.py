@@ -180,12 +180,26 @@ class Bot:
 
     def interact_with_profile(self, username):
         try:
+
+            # Wait for the profile to fully load
+            self.random_sleep(5, 10)
+
+            # Locate and click the 'Follow' button
+            follow_button_xpath = "//button[contains(@class, '_acan') and contains(., 'Follow')]"
+            follow_button = WebDriverWait(self.bot, 10).until(
+                EC.element_to_be_clickable((By.XPATH, follow_button_xpath)))
+            follow_button.click()
+            print(f"Clicked 'Follow' button for {username}.")
+            self.random_sleep(2, 5)
+
+
             message_button_xpath = "//div[contains(@class, 'x1i10hfl') and contains(text(), 'Message')]"
             message_button = WebDriverWait(self.bot, 10).until(
                 EC.element_to_be_clickable((By.XPATH, message_button_xpath)))
             message_button.click()
             print(f"Clicked on message button for {username}. Waiting for message window to stabilize...")
             self.random_sleep(5, 10) # Wait for the message window to be fully loaded
+            
             return self.type_and_send_message(username)
         except Exception as e:
             print(f"Could not interact with {username}'s profile. Error: {e}")
