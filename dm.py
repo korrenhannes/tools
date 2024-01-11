@@ -129,30 +129,54 @@ class Bot:
         main_window_handle = self.bot.current_window_handle
 
         for username in self.users:
-            # Open a new tab with the user's profile page
-            user_url = f'https://www.instagram.com/{username}/'
-            self.bot.execute_script(f"window.open('{user_url}', '_blank');")
-            self.random_sleep(3, 6)
+            # Navigate to Instagram's main page
+            self.bot.get('https://www.instagram.com/')
+            self.random_sleep(2, 5)
 
-            # Switch to the new tab
-            self.bot.switch_to.window(self.bot.window_handles[1])
-            self.random_sleep(2, 4)
+            # Hover over the search icon
+            search_icon = WebDriverWait(self.bot, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//span[descendant::*[@aria-label='Search']]")))
+            ActionChains(self.bot).move_to_element(search_icon).perform()
+            self.random_sleep(1, 3)
 
+            # Click the search icon to open search input
+            search_icon.click()
+            self.random_sleep(1, 3)
+
+            # Find the search input element
+            search_input = WebDriverWait(self.bot, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//input[@aria-label='Search input']")))
+
+            # Clear any existing text and type the username character by character
+            ActionChains(self.bot).click(search_input).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE).perform()
+            for char in username:
+                ActionChains(self.bot).send_keys_to_element(search_input, char).perform()
+                time.sleep(random.uniform(0.1, 0.3))  # Random sleep between keystrokes
+
+            self.random_sleep(1, 3)
+
+
+            # Wait for search suggestions and click on the profile
+            profile_in_search = WebDriverWait(self.bot, 10).until(
+                EC.presence_of_element_located((By.XPATH, f"//div[@role='none']//a[contains(@href, '/{username}/')]")))
+            profile_in_search.click()
+            self.random_sleep(2, 5)
+
+            # Wait for the profile to load and ensure we are on the correct page
+            WebDriverWait(self.bot, 10).until(
+                EC.presence_of_element_located((By.XPATH, f"//h2[text()='{username}']")))
+            
             if not self.interact_with_profile(username):
-                # Close the new tab if interaction failed and continue with the next user
-                self.bot.close()
-                self.bot.switch_to.window(main_window_handle)
+                # Close the tab if interaction failed and continue with the next user
                 continue
 
             # Scroll the page to mimic human behavior
             self.scroll_page()
 
-            # Close the new tab and switch back to the main window
-            self.bot.close()
-            self.bot.switch_to.window(main_window_handle)
-
-            # Random sleep to avoid rapid sequential actions
+            # Random sleep before closing the tab to simulate reading time
             self.random_sleep(5, 10)
+
+        print("All messages sent.")
 
     def interact_with_profile(self, username):
         try:
