@@ -16,7 +16,24 @@ driver = webdriver.Chrome(options=options)
 
 # enter receiver user name
 user = ['User_name', 'User_name ']
-message_ = ("final test")
+
+# Function to read followers from file
+def read_followers_from_file(file_path):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+    
+    followers = []
+    for line in lines:
+        line = line.strip()
+        if line and not line.endswith('followers (11):'):
+            followers.append(line)
+    return followers
+
+# Path to the file containing followers
+file_path = '/Users/korrenhannes/Desktop/random shit/followers.txt'
+users = read_followers_from_file(file_path)
+
+message_ = "final test"
  
  
 class Bot:
@@ -162,7 +179,10 @@ class Bot:
             return False
 
 def init():
-    users = ['kindweirdwild', 'seanben_david']
+    # Path to the file containing followers
+    file_path = '/Users/korrenhannes/Desktop/random shit/followers.txt'
+    users = read_followers_from_file(file_path)
+
     message_ = "final test"
     bot = Bot('dandanrtk12312234', 'd0!wpFTYXqyZzfPM4!zY', users, message_)
     input("DONE")
