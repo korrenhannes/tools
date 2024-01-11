@@ -58,6 +58,18 @@ class Bot:
         except Exception as e:
             print(f"Optional cookies button not found or error clicking it: {e}")
 
+
+        # Check and handle the second cookie dialog option
+        try:
+            decline_cookies_button = WebDriverWait(self.bot, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//button[contains(@class, '_a9-- _ap36 _a9_1')]")))
+            decline_cookies_button.click()
+            print("Declined optional cookies using the second dialog option.")
+            time.sleep(random.uniform(3, 5))  # Short pause after clicking
+        except Exception as e:
+            print(f"Second cookie dialog option not found. Error: {e}")
+
+
         enter_username = WebDriverWait(self.bot, 20).until(
             EC.presence_of_element_located((By.NAME, 'username')))
         enter_username.send_keys(self.username)
