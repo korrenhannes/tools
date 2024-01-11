@@ -153,14 +153,16 @@ class Bot:
                 ActionChains(self.bot).send_keys_to_element(search_input, char).perform()
                 time.sleep(random.uniform(0.1, 0.3))  # Random sleep between keystrokes
 
-            self.random_sleep(1, 3)
+            self.random_sleep(2, 4)
 
 
-            # Wait for search suggestions and click on the profile
-            profile_in_search = WebDriverWait(self.bot, 10).until(
-                EC.presence_of_element_located((By.XPATH, f"//div[@role='none']//a[contains(@href, '/{username}/')]")))
-            profile_in_search.click()
-            self.random_sleep(2, 5)
+            # Select the user from search suggestions
+            profile_xpath = f"//a[contains(@href, '/{username}/')]"
+            profile_link = WebDriverWait(self.bot, 10).until(
+                EC.presence_of_element_located((By.XPATH, profile_xpath)))
+            profile_link.click()
+            self.random_sleep(3, 6)
+
 
             # Wait for the profile to load and ensure we are on the correct page
             WebDriverWait(self.bot, 10).until(
@@ -180,26 +182,12 @@ class Bot:
 
     def interact_with_profile(self, username):
         try:
-
-            # Wait for the profile to fully load
-            self.random_sleep(5, 10)
-
-            # Locate and click the 'Follow' button
-            follow_button_xpath = "//button[contains(@class, '_acan') and contains(., 'Follow')]"
-            follow_button = WebDriverWait(self.bot, 10).until(
-                EC.element_to_be_clickable((By.XPATH, follow_button_xpath)))
-            follow_button.click()
-            print(f"Clicked 'Follow' button for {username}.")
-            self.random_sleep(2, 5)
-
-
             message_button_xpath = "//div[contains(@class, 'x1i10hfl') and contains(text(), 'Message')]"
             message_button = WebDriverWait(self.bot, 10).until(
                 EC.element_to_be_clickable((By.XPATH, message_button_xpath)))
             message_button.click()
             print(f"Clicked on message button for {username}. Waiting for message window to stabilize...")
             self.random_sleep(5, 10) # Wait for the message window to be fully loaded
-            
             return self.type_and_send_message(username)
         except Exception as e:
             print(f"Could not interact with {username}'s profile. Error: {e}")
