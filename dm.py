@@ -234,7 +234,7 @@ def init():
     users = read_followers_from_file(file_path)
 
     message_ = "final test"
-    bot = Bot('dandanrtk12312234', 'd0!wpFTYXqyZzfPM4!zY', users, message_)
+    bot = Bot('doronytoto1232345', '2HLqF,B*vk!,h;x', users, message_)
     input("DONE")
 
 init()

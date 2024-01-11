@@ -175,8 +175,8 @@ class InstagramBot:
 
 
 if __name__ == "__main__":
-    USERNAME = 'dandanrtk12312234'
-    PASSWORD = 'd0!wpFTYXqyZzfPM4!zY'
+    USERNAME = 'doronytoto1232345'
+    PASSWORD = '2HLqF,B*vk!,h;x'
     TARGET_USERS = ['kindweirdwild', 'wordofmachine']
 
     bot = InstagramBot(USERNAME, PASSWORD, TARGET_USERS)
