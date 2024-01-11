@@ -4,6 +4,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.options import Options
 import time
 import random
 import string
@@ -16,7 +17,13 @@ class InstagramBot:
         self.username = username
         self.password = password
         self.target_users = target_users
-        self.driver = webdriver.Chrome()
+        # Set up Chrome options
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")  # Run in headless mode
+        chrome_options.add_argument("--no-sandbox")  # Bypass OS security model
+        chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
+
+        self.driver = webdriver.Chrome(options=chrome_options)
 
     def close_browser(self):
         self.driver.close()
