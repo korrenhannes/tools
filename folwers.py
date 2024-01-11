@@ -22,6 +22,14 @@ class InstagramBot:
         try:
             self.driver.get('https://www.instagram.com/accounts/login/')
             time.sleep(random.uniform(3, 5))
+            # Wait and click the 'Decline optional cookies' button
+            try:
+                decline_cookies_button = WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Decline optional cookies')]")))
+                decline_cookies_button.click()
+                time.sleep(random.uniform(3, 5))  # Short pause after clicking
+            except Exception as e:
+                print(f"Optional cookies button not found or error clicking it: {e}")
 
             username_input = WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.NAME, 'username')))
