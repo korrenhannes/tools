@@ -46,7 +46,7 @@ class InstagramBot:
 
                 try:
                     followers_link = WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, 'followers')))
+                        EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/followers/') and contains(@class, '_a6hd')]")))
                     followers_link.click()
                     time.sleep(random.uniform(2, 3))
                 except Exception as e:
@@ -78,7 +78,7 @@ class InstagramBot:
             self.driver.get(f'https://www.instagram.com/{user}/')
             time.sleep(random.uniform(5, 8))
             followers_link = WebDriverWait(self.driver, 20).until(
-                EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, 'followers')))
+                EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/followers/') and contains(@class, '_a6hd')]")))
             followers_link.click()
             time.sleep(random.uniform(5, 8))
 
@@ -86,15 +86,14 @@ class InstagramBot:
                 EC.presence_of_element_located((By.XPATH, "//div[@role='dialog']")))
 
             for letter in alphabet:
-                # Find the search bar in the followers modal
+                # Find and clear the search bar in the followers modal
                 search_bar = followers_modal.find_element(By.XPATH, "//input[@aria-label='Search input']")
-
-                # Initialize ActionChains, clear search bar, and type the letter
                 action = ActionChains(self.driver)
-                action.click(search_bar).perform()
-                action.send_keys(Keys.CONTROL + "a").send_keys(Keys.BACKSPACE).perform()
-                time.sleep(random.uniform(5, 10))  # Pause after clearing
-                action = ActionChains(self.driver)  # Re-initialize ActionChains
+                action.click(search_bar).send_keys(Keys.CONTROL + "a").send_keys(Keys.BACKSPACE).perform()
+                time.sleep(random.uniform(2, 4))  # Pause after clearing
+
+                # Type the next letter
+                action = ActionChains(self.driver)
                 action.send_keys(letter).perform()
                 time.sleep(random.uniform(8, 10))  # Wait for search results to load
 
@@ -126,8 +125,15 @@ class InstagramBot:
 
                     time.sleep(random.uniform(3, 5))
 
-                # Pause before closing and reopening the modal
-                time.sleep(random.uniform(2, 4))
+                # Close and reopen the modal for each letter to reset the search
+                close_button = followers_modal.find_element(By.XPATH, "//button[contains(@class, 'wpO6b')]")
+                close_button.click()
+                time.sleep(random.uniform(4, 6))
+
+                followers_link = WebDriverWait(self.driver, 20).until(
+                    EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/followers/') and contains(@class, '_a6hd')]")))
+                followers_link.click()
+                time.sleep(random.uniform(5, 8))
 
             # Close the followers modal after all letters are processed
             close_button = followers_modal.find_element(By.XPATH, "//button[contains(@class, 'wpO6b')]")
@@ -150,8 +156,8 @@ class InstagramBot:
 
 
 if __name__ == "__main__":
-    USERNAME = 'joshclipit'
-    PASSWORD = 'Kokoman10'
+    USERNAME = 'dandanrtk12312234'
+    PASSWORD = 'd0!wpFTYXqyZzfPM4!zY'
     TARGET_USERS = ['kindweirdwild', 'wordofmachine']
 
     bot = InstagramBot(USERNAME, PASSWORD, TARGET_USERS)
