@@ -122,15 +122,21 @@ class InstagramBot:
 
             self.scroll_and_collect(followers_modal, all_followers)
 
-            # Close and reopen the modal for each letter to reset the search
-            close_button = followers_modal.find_element(By.XPATH, "//button[contains(@class, 'wpO6b')]")
+            # Close the followers modal
+            close_button = followers_modal.find_element(By.XPATH, "//button[@class='_abl-']")
             close_button.click()
             time.sleep(random.uniform(4, 6))
 
+            # Reopen the followers modal for the next letter
             followers_link = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/followers/') and contains(@class, '_a6hd')]")))
             followers_link.click()
             time.sleep(random.uniform(5, 8))
+
+            # Reassign the followers_modal and search_bar for the new modal
+            followers_modal = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//div[@role='dialog']")))
+            search_bar = followers_modal.find_element(By.XPATH, "//input[@aria-label='Search input']")
 
     def collect_followers_directly(self, followers_modal, all_followers):
         self.scroll_and_collect(followers_modal, all_followers)
