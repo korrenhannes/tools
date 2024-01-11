@@ -88,12 +88,15 @@ class InstagramBot:
             for letter in alphabet:
                 # Find the search bar in the followers modal
                 search_bar = followers_modal.find_element(By.XPATH, "//input[@aria-label='Search input']")
+
+                # Initialize ActionChains, clear search bar, and type the letter
                 action = ActionChains(self.driver)
                 action.click(search_bar).perform()
-                action.send_keys(Keys.CONTROL + "a").send_keys(Keys.BACKSPACE).perform()  # Clear search bar
-                time.sleep(random.uniform(2, 4))
+                action.send_keys(Keys.CONTROL + "a").send_keys(Keys.BACKSPACE).perform()
+                time.sleep(random.uniform(5, 10))  # Pause after clearing
+                action = ActionChains(self.driver)  # Re-initialize ActionChains
                 action.send_keys(letter).perform()
-                time.sleep(random.uniform(20, 25))  # Wait for search results to load
+                time.sleep(random.uniform(8, 10))  # Wait for search results to load
 
                 last_height = self.driver.execute_script(
                     "return arguments[0].scrollHeight", followers_modal)
