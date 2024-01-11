@@ -7,6 +7,9 @@ from selenium.webdriver.common.action_chains import ActionChains
 import time
 import random
 import string
+import ctypes
+import subprocess
+
 
 class InstagramBot:
     def __init__(self, username, password, target_users):
@@ -179,6 +182,19 @@ class InstagramBot:
                 "arguments[0].scrollTo(0, arguments[0].scrollHeight); return arguments[0].scrollHeight;", modal)
             time.sleep(random.uniform(0.5, 1.0))
 
+    def run_shell_command(self, command):
+        try:
+            subprocess.run(command, shell=True)
+        except Exception as e:
+            print(f"Error running shell command: {e}")
+
+    def prevent_sleep(self):
+        # Runs the caffeinate command to prevent sleep
+        self.run_shell_command("caffeinate -dimsu &")
+
+    def allow_sleep(self):
+        # Kills the caffeinate process to allow sleep again
+        self.run_shell_command("pkill caffeinate")
 
 if __name__ == "__main__":
     USERNAME = 'doronytoto1232345'
@@ -186,9 +202,11 @@ if __name__ == "__main__":
     TARGET_USERS = ['kindweirdwild', 'wordofmachine']
 
     bot = InstagramBot(USERNAME, PASSWORD, TARGET_USERS)
+    bot.prevent_sleep()  # Prevent the computer from sleeping
     bot.login()
     followers = bot.get_followers()
     bot.close_browser()
+    bot.allow_sleep()  # Allow the computer to sleep again
 
     with open("followers.txt", "w") as file:
         for user, usernames in followers.items():
