@@ -30,6 +30,17 @@ class Bot:
 
     def login(self):
         self.bot.get('https://www.instagram.com/')
+        time.sleep(random.uniform(3, 5))  # Short pause after clicking
+
+
+        try:
+            decline_cookies_button = WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Decline optional cookies')]")))
+            decline_cookies_button.click()
+            time.sleep(random.uniform(3, 5))  # Short pause after clicking
+        except Exception as e:
+            print(f"Optional cookies button not found or error clicking it: {e}")
+
         enter_username = WebDriverWait(self.bot, 20).until(
             EC.presence_of_element_located((By.NAME, 'username')))
         enter_username.send_keys(self.username)
@@ -153,7 +164,7 @@ class Bot:
 def init():
     users = ['kindweirdwild', 'seanben_david']
     message_ = "final test"
-    bot = Bot('joshclipit', 'Kokoman10', users, message_)
+    bot = Bot('dandanrtk12312234', 'd0!wpFTYXqyZzfPM4!zY', users, message_)
     input("DONE")
 
 init()
