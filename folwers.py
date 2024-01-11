@@ -68,7 +68,6 @@ class InstagramBot:
             return 0
 
     def collect_usernames(self, user):
-        alphabet = string.ascii_lowercase  # Gets all the letters in the alphabet
         all_followers = set()  # To store all unique followers
 
         try:
@@ -85,65 +84,77 @@ class InstagramBot:
             followers_modal = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, "//div[@role='dialog']")))
 
-            for letter in alphabet:
-                # Find and clear the search bar in the followers modal
+            try:
+                # Attempt to find the search bar in the followers modal
                 search_bar = followers_modal.find_element(By.XPATH, "//input[@aria-label='Search input']")
-                action = ActionChains(self.driver)
-                action.click(search_bar).send_keys(Keys.CONTROL + "a").send_keys(Keys.BACKSPACE).perform()
-                time.sleep(random.uniform(2, 4))  # Pause after clearing
-
-                # Type the next letter
-                action = ActionChains(self.driver)
-                action.send_keys(letter).perform()
-                time.sleep(random.uniform(8, 10))  # Wait for search results to load
-
-                last_height = self.driver.execute_script(
-                    "return arguments[0].scrollHeight", followers_modal)
-
-                while True:
-                    self.driver.execute_script(
-                        "arguments[0].scrollTop = arguments[0].scrollHeight", followers_modal)
-                    time.sleep(random.uniform(8, 10))
-
-                    # Collect usernames
-                    followers_elements = followers_modal.find_elements(By.XPATH, "//a[contains(@class, '_a6hd')]/div/div/span")
-                    print(f"Found {len(followers_elements)} followers elements for letter '{letter}'")
-
-                    for element in followers_elements:
-                        all_followers.add(element.text)
-
-                    new_height = self.driver.execute_script(
-                        "return arguments[0].scrollHeight", followers_modal)
-
-                    if new_height == last_height:
-                        break
-                    last_height = new_height
-
-                    if not followers_elements:
-                        print(f"No new followers found for letter '{letter}'")
-                        break
-
-                    time.sleep(random.uniform(3, 5))
-
-                # Close and reopen the modal for each letter to reset the search
-                close_button = followers_modal.find_element(By.XPATH, "//button[contains(@class, 'wpO6b')]")
-                close_button.click()
-                time.sleep(random.uniform(4, 6))
-
-                followers_link = WebDriverWait(self.driver, 20).until(
-                    EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/followers/') and contains(@class, '_a6hd')]")))
-                followers_link.click()
-                time.sleep(random.uniform(5, 8))
-
-            # Close the followers modal after all letters are processed
-            close_button = followers_modal.find_element(By.XPATH, "//button[contains(@class, 'wpO6b')]")
-            close_button.click()
-            time.sleep(random.uniform(4, 6))
+                self.collect_followers_with_search(search_bar, followers_modal, all_followers)
+            except Exception as search_exception:
+                print(f"Search input not found for {user}: {search_exception}")
+                # Fallback: Collect usernames directly from the followers list
+                self.collect_followers_directly(followers_modal, all_followers)
 
         except Exception as e:
             print(f"Error collecting usernames for {user}: {e}")
 
         return list(all_followers)
+
+    def collect_followers_with_search(self, search_bar, followers_modal, all_followers):
+        alphabet = string.ascii_lowercase  # Gets all the letters in the alphabet
+
+        for letter in alphabet:
+            # Find and clear the search bar in the followers modal
+            action = ActionChains(self.driver)
+            action.click(search_bar).send_keys(Keys.CONTROL + "a").send_keys(Keys.BACKSPACE).perform()
+            time.sleep(random.uniform(2, 4))  # Pause after clearing
+
+            # Type the next letter
+            action = ActionChains(self.driver)
+            action.send_keys(letter).perform()
+            time.sleep(random.uniform(8, 10))  # Wait for search results to load
+
+            self.scroll_and_collect(followers_modal, all_followers)
+
+            # Close and reopen the modal for each letter to reset the search
+            close_button = followers_modal.find_element(By.XPATH, "//button[contains(@class, 'wpO6b')]")
+            close_button.click()
+            time.sleep(random.uniform(4, 6))
+
+            followers_link = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/followers/') and contains(@class, '_a6hd')]")))
+            followers_link.click()
+            time.sleep(random.uniform(5, 8))
+
+    def collect_followers_directly(self, followers_modal, all_followers):
+        self.scroll_and_collect(followers_modal, all_followers)
+
+    def scroll_and_collect(self, followers_modal, all_followers):
+        last_height = self.driver.execute_script(
+            "return arguments[0].scrollHeight", followers_modal)
+
+        while True:
+            self.driver.execute_script(
+                "arguments[0].scrollTop = arguments[0].scrollHeight", followers_modal)
+            time.sleep(random.uniform(8, 10))
+
+            # Collect usernames
+            followers_elements = followers_modal.find_elements(By.XPATH, "//a[contains(@class, '_a6hd')]/div/div/span")
+            print(f"Found {len(followers_elements)} followers elements")
+
+            for element in followers_elements:
+                all_followers.add(element.text)
+
+            new_height = self.driver.execute_script(
+                "return arguments[0].scrollHeight", followers_modal)
+
+            if new_height == last_height:
+                break
+            last_height = new_height
+
+            if not followers_elements:
+                print("No new followers found")
+                break
+
+            time.sleep(random.uniform(3, 5))
 
 
     def scroll_followers_modal(self, modal):
