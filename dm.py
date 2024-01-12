@@ -302,6 +302,17 @@ class Bot:
             self.caffeinate_process.terminate()
             print("Allowing sleep mode.")
 
+class BotContextManager:
+    def __init__(self, bot):
+        self.bot = bot
+
+    def __enter__(self):
+        self.bot.prevent_sleep()
+        return self.bot
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.bot.allow_sleep()
+
 
 def init():
     # Path to the file containing followers
@@ -315,13 +326,11 @@ def init():
                 "We’re working on a tool that might help ease this process.\n\n"
                 "Would you be interested in hearing a bit more about it? Your input would be really valuable to us.\n\n"
                 "Thanks!")
-    bot = Bot('doronytoto1232345', '2HLqF,B*vk!,h;x', users, message_)
-
-    try:
-        bot.prevent_sleep()
+    
+    # Using the context manager
+    with BotContextManager(Bot('doronytoto1232345', '2HLqF,B*vk!,h;x', users, message_)) as bot:
         input("Press Enter to finish...")
-    finally:
-        bot.allow_sleep()
+
 
 
 init()
