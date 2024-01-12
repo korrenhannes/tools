@@ -266,8 +266,6 @@ class Bot:
             # Split the message into lines and type each line
             lines = self.message.split('\n')
             for i, line in enumerate(lines):
-                # Clear the message box before typing each line
-                ActionChains(self.bot).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE).perform()
 
                 for char in line:
                     ActionChains(self.bot).send_keys(char).perform()
@@ -275,6 +273,8 @@ class Bot:
                 
                 if i < len(lines) - 1:  # If not the last line, add a newline
                     ActionChains(self.bot).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
+                    time.sleep(random.uniform(0.1, 0.3)) # Sleep after adding a newline
+
 
 
             # Send the message
