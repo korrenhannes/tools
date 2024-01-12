@@ -91,7 +91,7 @@ class Bot:
                 # Send messages
                 self.send_messages()
 
-                
+
                 return
             else:
                 print("Failed to log in with cookies. Proceeding with regular login.")
@@ -261,15 +261,24 @@ class Bot:
             print(f"Attempting to send message to {username}...")
 
             # Clear the message box before typing
-            ActionChains(self.bot).click(message_box).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE).perform()
+            ActionChains(self.bot).click(message_box).perform()
 
-            # Type the message character by character
-            for char in self.message:
-                ActionChains(self.bot).send_keys_to_element(message_box, char).perform()
-                time.sleep(random.uniform(0.1, 0.3))  # Random sleep between keystrokes
+            # Split the message into lines and type each line
+            lines = self.message.split('\n')
+            for i, line in enumerate(lines):
+                # Clear the message box before typing each line
+                ActionChains(self.bot).key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys(Keys.BACKSPACE).perform()
+
+                for char in line:
+                    ActionChains(self.bot).send_keys(char).perform()
+                    time.sleep(random.uniform(0.1, 0.3))  # Random sleep between keystrokes
+                
+                if i < len(lines) - 1:  # If not the last line, add a newline
+                    ActionChains(self.bot).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
+
 
             # Send the message
-            ActionChains(self.bot).send_keys_to_element(message_box, Keys.RETURN).perform()
+            ActionChains(self.bot).send_keys(Keys.RETURN).perform()
             print(f"Message sent to {username}.")
             return True
         except Exception as e:
@@ -283,12 +292,15 @@ class Bot:
             print(f"Error running shell command: {e}")
 
     def prevent_sleep(self):
-        # Runs the caffeinate command to prevent sleep
-        self.run_shell_command("caffeinate -dimsu &")
+        # Starts the caffeinate process
+        self.caffeinate_process = subprocess.Popen(["caffeinate", "-dimsu"])
+        print("Preventing sleep mode.")
 
     def allow_sleep(self):
-        # Kills the caffeinate process to allow sleep again
-        self.run_shell_command("pkill caffeinate")
+        # Terminates the caffeinate process
+        if self.caffeinate_process:
+            self.caffeinate_process.terminate()
+            print("Allowing sleep mode.")
 
 
 def init():
