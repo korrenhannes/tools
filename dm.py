@@ -317,11 +317,11 @@ def init():
                 "Thanks!")
     bot = Bot('doronytoto1232345', '2HLqF,B*vk!,h;x', users, message_)
 
-    bot.prevent_sleep()
-
-    input("DONE")
-
-    bot.allow_sleep()
+    try:
+        bot.prevent_sleep()
+        input("Press Enter to finish...")
+    finally:
+        bot.allow_sleep()
 
 
 init()
