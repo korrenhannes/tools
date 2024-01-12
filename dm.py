@@ -176,7 +176,7 @@ class Bot:
             self.scroll_page()
 
             # Random sleep before closing the tab to simulate reading time
-            self.random_sleep(5, 10)
+            self.random_sleep(3000, 4000)
 
         print("All messages sent.")
 
@@ -233,7 +233,13 @@ def init():
     file_path = '/Users/korrenhannes/Desktop/random shit/followers.txt'
     users = read_followers_from_file(file_path)
 
-    message_ = "final test"
+    message_ = ("Hi,\n\n"
+                "I came across your profile and noticed your interest in content creation. "
+                "I’m Doron from ClipIt. We focus on making creativity simpler and more accessible for everyone.\n\n"
+                "I’m curious, have you ever wanted to create engaging content for social media but found the process a bit daunting? "
+                "We’re working on a tool that might help ease this process.\n\n"
+                "Would you be interested in hearing a bit more about it? Your input would be really valuable to us.\n\n"
+                "Thanks!")
     bot = Bot('doronytoto1232345', '2HLqF,B*vk!,h;x', users, message_)
     input("DONE")
 
