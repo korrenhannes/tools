@@ -9,6 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.action_chains import ActionChains
+import subprocess
 
 options = webdriver.ChromeOptions()
 driver = webdriver.Chrome(options=options)
@@ -228,6 +229,21 @@ class Bot:
             print(f"Error sending message to {username}: {e}")
             return False
 
+    def run_shell_command(self, command):
+        try:
+            subprocess.run(command, shell=True)
+        except Exception as e:
+            print(f"Error running shell command: {e}")
+
+    def prevent_sleep(self):
+        # Runs the caffeinate command to prevent sleep
+        self.run_shell_command("caffeinate -dimsu &")
+
+    def allow_sleep(self):
+        # Kills the caffeinate process to allow sleep again
+        self.run_shell_command("pkill caffeinate")
+
+
 def init():
     # Path to the file containing followers
     file_path = '/Users/korrenhannes/Desktop/random shit/followers.txt'
@@ -241,6 +257,12 @@ def init():
                 "Would you be interested in hearing a bit more about it? Your input would be really valuable to us.\n\n"
                 "Thanks!")
     bot = Bot('doronytoto1232345', '2HLqF,B*vk!,h;x', users, message_)
+
+    bot.prevent_sleep()
+
     input("DONE")
+
+    bot.allow_sleep()
+
 
 init()
