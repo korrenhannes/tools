@@ -2,6 +2,7 @@
 import random
 from selenium import webdriver
 import os
+import pickle
 import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,6 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import TimeoutException
 import subprocess
 
 options = webdriver.ChromeOptions()
@@ -44,12 +46,55 @@ class Bot:
         self.users = users
         self.message = message
         self.bot = driver
+        self.cookies_file = "cookies.pkl"  # Define the path to save cookies
         self.login()
 
+    def save_cookies(self):
+        with open(self.cookies_file, "wb") as file:
+            pickle.dump(self.bot.get_cookies(), file)
+        print("Cookies saved.")
+
+    def load_cookies(self):
+        try:
+            with open(self.cookies_file, "rb") as file:
+                cookies = pickle.load(file)
+                for cookie in cookies:
+                    self.bot.add_cookie(cookie)
+            return True
+        except FileNotFoundError:
+            print("Cookies file not found.")
+            return False
+
+    def is_logged_in(self):
+        # Modify this function to check for a specific element that indicates a logged-in state
+        try:
+            WebDriverWait(self.bot, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//span[descendant::*[@aria-label='Search']]")))
+            return True
+        except TimeoutException:
+            return False
+        
     def login(self):
         self.bot.get('https://www.instagram.com/')
         time.sleep(random.uniform(3, 5))  # Short pause after clicking
 
+
+        # Try loading cookies if they exist
+        if self.load_cookies():
+            self.bot.get('https://www.instagram.com/')
+            if self.is_logged_in():
+                print("Logged in using cookies.")
+
+                # Handling pop-ups after login
+                self.close_popups()
+
+                # Send messages
+                self.send_messages()
+
+                
+                return
+            else:
+                print("Failed to log in with cookies. Proceeding with regular login.")
 
         try:
             decline_cookies_button = WebDriverWait(self.driver, 10).until(
@@ -79,6 +124,8 @@ class Bot:
         enter_password.send_keys(self.password)
         enter_password.send_keys(Keys.RETURN)
         time.sleep(5)
+
+        self.save_cookies()
 
         # Handling pop-ups after login
         self.close_popups()
