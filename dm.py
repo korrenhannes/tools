@@ -177,7 +177,7 @@ class Bot:
             self.scroll_page()
 
             # Random sleep before closing the tab to simulate reading time
-            self.random_sleep(3000, 4000)
+            self.random_sleep(3, 4)
 
         print("All messages sent.")
 
