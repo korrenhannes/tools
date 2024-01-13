@@ -109,18 +109,22 @@ class InstagramBot:
             return False
 
     def check_unread_messages(self):
-        self.navigate_to_direct_messages()
+        if not self.navigate_to_direct_messages():
+            print("Failed to navigate to direct messages.")
+            return
+
         chat_list = self.driver.find_elements(By.XPATH, "//div[@role='listitem']")
         for chat in chat_list:
             try:
-                # Check for the unread element
-                chat.find_element(By.XPATH, ".//div[contains(@class, 'x1a02dak')]")
+                # Check if the unread indicator element is present
+                chat.find_element(By.XPATH, ".//span[contains(@class, 'x6s0dn4') and contains(@class, 'xzolkzo')]")
                 chat.click()  # Open the conversation
                 time.sleep(2)
                 # Add any interaction you want to have in the conversation here
                 self.driver.back()  # Go back to the chat list
                 time.sleep(2)
             except NoSuchElementException:
+                # If unread indicator not found, skip to the next chat
                 continue
 
     def close_browser(self):
