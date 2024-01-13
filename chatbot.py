@@ -8,6 +8,8 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from dotenv import load_dotenv
 
 class InstagramBot:
@@ -65,9 +67,15 @@ class InstagramBot:
             pass
 
     def navigate_to_direct_messages(self):
-        direct_message_icon = self.driver.find_element(By.XPATH, "//svg[@aria-label='Direct']")
-        direct_message_icon.click()
-        time.sleep(5)
+        try:
+            wait = WebDriverWait(self.driver, 10)
+            direct_message_icon = wait.until(EC.presence_of_element_located((By.XPATH, "//svg[@aria-label='Direct']")))
+            direct_message_icon.click()
+            time.sleep(5)
+        except NoSuchElementException:
+            print("Direct message icon not found")
+            return False
+        return True
 
     def check_unread_messages(self):
         self.navigate_to_direct_messages()
