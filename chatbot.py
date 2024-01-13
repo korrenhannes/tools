@@ -157,22 +157,17 @@ class InstagramBot:
     def generate_message(self, prompt):
         openai.api_key = os.getenv("OPENAI_API_KEY")
 
-        # Split chat history into individual messages
-        chat_messages = prompt.split('\n')
-
-        # Structure the messages for the API call
-        messages = [{"role": "system", "content": "You are an Instagram content creator. Respond to the messages as you would in a professional and engaging manner."}]
-        for message in chat_messages:
-            if message.startswith("Me:"):
-                # Your messages
-                messages.append({"role": "assistant", "content": message[4:]})
-            elif message.startswith("Other:"):
-                # Other user's messages
-                messages.append({"role": "user", "content": message[7:]})
+        # Prepare the conversation messages for the API
+        messages = [{"role": "system", "content": "You are an Instagram content creator named Doron, interacting in a friendly and helpful manner."}]
+        for line in prompt.split('\n'):
+            if line.startswith("Me:"):
+                messages.append({"role": "assistant", "content": line[4:]})
+            elif line.startswith("Other:"):
+                messages.append({"role": "user", "content": line[7:]})
 
         try:
             response = openai.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4-1106-preview",
                 messages=messages
             )
             # Fetching only the latest response
