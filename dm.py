@@ -1,6 +1,7 @@
 # importing module
 import random
 from selenium import webdriver
+from fake_useragent import UserAgent
 import os
 import pickle
 import time
@@ -13,7 +14,12 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
 import subprocess
 
+
 options = webdriver.ChromeOptions()
+
+# Set random user-agent
+options.add_argument(f'user-agent={UserAgent().random}')
+
 driver = webdriver.Chrome(options=options)
 
 
@@ -70,7 +76,7 @@ class Bot:
     def is_logged_in(self):
         # Modify this function to check for a specific element that indicates a logged-in state
         try:
-            WebDriverWait(self.bot, 10).until(
+            WebDriverWait(self.bot, 30).until(
                 EC.presence_of_element_located((By.XPATH, "//span[descendant::*[@aria-label='Search']]")))
             return True
         except TimeoutException:
@@ -99,7 +105,7 @@ class Bot:
                 print("Failed to log in with cookies. Proceeding with regular login.")
 
         try:
-            decline_cookies_button = WebDriverWait(self.driver, 10).until(
+            decline_cookies_button = WebDriverWait(self.driver, 30).until(
                 EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Decline optional cookies')]")))
             decline_cookies_button.click()
             time.sleep(random.uniform(3, 5))  # Short pause after clicking
@@ -109,7 +115,7 @@ class Bot:
 
         # Check and handle the second cookie dialog option
         try:
-            decline_cookies_button = WebDriverWait(self.bot, 10).until(
+            decline_cookies_button = WebDriverWait(self.bot, 30).until(
                 EC.presence_of_element_located((By.XPATH, "//button[contains(@class, '_a9-- _ap36 _a9_1')]")))
             decline_cookies_button.click()
             print("Declined optional cookies using the second dialog option.")
@@ -118,10 +124,10 @@ class Bot:
             print(f"Second cookie dialog option not found. Error: {e}")
 
 
-        enter_username = WebDriverWait(self.bot, 20).until(
+        enter_username = WebDriverWait(self.bot, 30).until(
             EC.presence_of_element_located((By.NAME, 'username')))
         enter_username.send_keys(self.username)
-        enter_password = WebDriverWait(self.bot, 20).until(
+        enter_password = WebDriverWait(self.bot, 30).until(
             EC.presence_of_element_located((By.NAME, 'password')))
         enter_password.send_keys(self.password)
         enter_password.send_keys(Keys.RETURN)
@@ -162,7 +168,7 @@ class Bot:
 
     def dismiss_popup(self, selector, name):
         try:
-            element = WebDriverWait(self.bot, 10).until(
+            element = WebDriverWait(self.bot, 30).until(
                 EC.element_to_be_clickable((By.XPATH, selector)))
             element.click()
             print(f"Closed '{name}' popup.")
@@ -184,7 +190,7 @@ class Bot:
             self.random_sleep(2, 5)
 
             # Hover over the search icon
-            search_icon = WebDriverWait(self.bot, 10).until(
+            search_icon = WebDriverWait(self.bot, 30).until(
                 EC.presence_of_element_located((By.XPATH, "//span[descendant::*[@aria-label='Search']]")))
             ActionChains(self.bot).move_to_element(search_icon).perform()
             self.random_sleep(1, 3)
@@ -194,7 +200,7 @@ class Bot:
             self.random_sleep(1, 3)
 
             # Find the search input element
-            search_input = WebDriverWait(self.bot, 10).until(
+            search_input = WebDriverWait(self.bot, 30).until(
                 EC.presence_of_element_located((By.XPATH, "//input[@aria-label='Search input']")))
 
             # Clear any existing text and type the username character by character
@@ -208,14 +214,14 @@ class Bot:
 
             # Select the user from search suggestions
             profile_xpath = f"//a[contains(@href, '/{username}/')]"
-            profile_link = WebDriverWait(self.bot, 10).until(
+            profile_link = WebDriverWait(self.bot, 30).until(
                 EC.presence_of_element_located((By.XPATH, profile_xpath)))
             profile_link.click()
             self.random_sleep(3, 6)
 
 
             # Wait for the profile to load and ensure we are on the correct page
-            WebDriverWait(self.bot, 10).until(
+            WebDriverWait(self.bot, 30).until(
                 EC.presence_of_element_located((By.XPATH, f"//h2[text()='{username}']")))
             
 
@@ -243,14 +249,14 @@ class Bot:
 
             # Locate and click the 'Follow' button
             follow_button_xpath = "//button[contains(@class, '_acan') and contains(., 'Follow')]"
-            follow_button = WebDriverWait(self.bot, 10).until(
+            follow_button = WebDriverWait(self.bot, 30).until(
                 EC.element_to_be_clickable((By.XPATH, follow_button_xpath)))
             follow_button.click()
             print(f"Clicked 'Follow' button for {username}.")
             self.random_sleep(2, 5)
             
             message_button_xpath = "//div[contains(@class, 'x1i10hfl') and contains(text(), 'Message')]"
-            message_button = WebDriverWait(self.bot, 10).until(
+            message_button = WebDriverWait(self.bot, 30).until(
                 EC.element_to_be_clickable((By.XPATH, message_button_xpath)))
             message_button.click()
             print(f"Clicked on message button for {username}. Waiting for message window to stabilize...")
@@ -265,7 +271,7 @@ class Bot:
 
         try:
             message_input_selector = "div[contenteditable='true'][data-lexical-editor='true']"
-            message_box = WebDriverWait(self.bot, 20).until(
+            message_box = WebDriverWait(self.bot, 30).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, message_input_selector)))
             print(f"Attempting to send message to {username}...")
 
@@ -310,6 +316,28 @@ class Bot:
         if self.caffeinate_process:
             self.caffeinate_process.terminate()
             print("Allowing sleep mode.")
+
+    def human_like_sleep(avg_duration, deviation):
+        sleep_time = abs(random.normalvariate(avg_duration, deviation))
+        time.sleep(sleep_time)
+
+    def random_mouse_movement(driver):
+        action = ActionChains(driver)
+        x_offset = random.randint(-100, 100)
+        y_offset = random.randint(-100, 100)
+        action.move_by_offset(x_offset, y_offset).perform()
+
+    def click_element(element):
+        action = ActionChains(driver)
+        x_offset = random.randint(-5, 5)
+        y_offset = random.randint(-5, 5)
+        action.move_to_element_with_offset(element, x_offset, y_offset).click().perform()
+
+    def type_like_human(element, text):
+        for char in text:
+            time.sleep(random.uniform(0.05, 0.2))  # Mimic human typing speed
+            element.send_keys(char)
+
 
 class BotContextManager:
     def __init__(self, bot):
