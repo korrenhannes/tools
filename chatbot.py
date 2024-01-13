@@ -122,54 +122,96 @@ class InstagramBot:
                 chat.find_element(By.XPATH, ".//span[contains(@class, 'x6s0dn4') and contains(@class, 'xzolkzo')]")
                 chat.click()  # Open the conversation
                 time.sleep(2)
-                # Add any interaction you want to have in the conversation here
+
+                # Get the entire chat history as a prompt
+                chat_history = self.get_chat_history()
+                prompt = f"{chat_history}\n\n[Your response]"
+
+                # Generate a response message
+                response_message = self.generate_message(prompt)
+                if response_message:
+                    # Find the message input box and type the response
+                    message_box_selector = "div[contenteditable='true'][data-lexical-editor='true']"
+                    message_box = WebDriverWait(self.driver, 20).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, message_box_selector)))
+                    ActionChains(self.driver).click(message_box).perform()
+                    for char in response_message:
+                        ActionChains(self.driver).send_keys(char).perform()
+                        time.sleep(random.uniform(0.1, 0.3))  # Random sleep between keystrokes
+
+                    # Send the message
+                    ActionChains(self.driver).send_keys(Keys.RETURN).perform()
+                    print(f"Message sent in response to chat with {chat.text}.")
+                else:
+                    print("Failed to generate a message.")
+
                 self.driver.back()  # Go back to the chat list
                 time.sleep(2)
+
             except NoSuchElementException:
                 # If unread indicator not found, skip to the next chat
                 continue
 
+
+
     def generate_message(self, prompt):
         openai.api_key = os.getenv("OPENAI_API_KEY")
         try:
-            response = openai.Completion.create(
-                engine="text-davinci-003",  # or any other GPT-3.5 model
-                prompt=prompt,
-                max_tokens=50
+            response = openai.chat.completions.create(
+                model="gpt-3.5-turbo",  # Updated model name
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": prompt}
+                ]
             )
-            return response.choices[0].text.strip()
+            return response.choices[0].message.content.strip()  # Accessing the message
         except Exception as e:
             print(f"Error in generating message: {e}")
             return None
         
-    def respond_to_message(self, username, prompt):
-        try:
-            # Navigate to the user's profile and open the message box
-            if not self.interact_with_profile(username):
-                print(f"Could not interact with {username}'s profile.")
-                return
+    def get_chat_history(self):
+        # Fetching chat messages from both users
+        other_user_messages = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'x6prxxf') and contains(@class, 'x1yc453h')]")
+        my_messages = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'x6prxxf') and contains(@class, 'x14ctfv')]")
 
-            # Generate a message
+        chat_history = []
+        for message in other_user_messages:
+            chat_history.append("Other: " + message.text.strip())
+        for message in my_messages:
+            chat_history.append("Me: " + message.text.strip())
+
+        return "\n".join(chat_history)
+
+    def respond_to_message(self, username):
+        try:
+
+            # Get the entire chat history as a prompt
+            chat_history = self.get_chat_history()
+            prompt = f"{chat_history}\n\n[Your response]"
+
+            # Generate a response message
             message = self.generate_message(prompt)
             if message:
                 # Find the message input box and type the message
                 message_box_selector = "div[contenteditable='true'][data-lexical-editor='true']"
-                message_box = WebDriverWait(self.bot, 20).until(
+                message_box = WebDriverWait(self.driver, 20).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, message_box_selector)))
-                ActionChains(self.bot).click(message_box).perform()
+                ActionChains(self.driver).click(message_box).perform()
                 for char in message:
-                    ActionChains(self.bot).send_keys(char).perform()
+                    ActionChains(self.driver).send_keys(char).perform()
                     time.sleep(random.uniform(0.1, 0.3))  # Random sleep between keystrokes
 
                 # Send the message
-                ActionChains(self.bot).send_keys(Keys.RETURN).perform()
+                ActionChains(self.driver).send_keys(Keys.RETURN).perform()
                 print(f"Message sent to {username}.")
             else:
                 print("Failed to generate a message.")
         except Exception as e:
             print(f"Error responding to message for {username}: {e}")
+
     def close_browser(self):
         self.driver.quit()
+
 
 load_dotenv()
 INSTAGRAM_USERNAME = os.getenv('INSTAGRAM_USERNAME')
