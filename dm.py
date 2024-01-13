@@ -41,6 +41,7 @@ message_ = "final test"
  
 class Bot:
     def __init__(self, username, password, users, message):
+        self.messaged_users = []  # Add this line
         self.username = username
         self.password = password
         self.users = users
@@ -48,6 +49,7 @@ class Bot:
         self.bot = driver
         self.cookies_file = "cookies.pkl"  # Define the path to save cookies
         self.login()
+
 
     def save_cookies(self):
         with open(self.cookies_file, "wb") as file:
@@ -216,6 +218,11 @@ class Bot:
             WebDriverWait(self.bot, 10).until(
                 EC.presence_of_element_located((By.XPATH, f"//h2[text()='{username}']")))
             
+
+            self.random_sleep(5, 10)
+
+            self.messaged_users.append(username)
+
             if not self.interact_with_profile(username):
                 # Close the tab if interaction failed and continue with the next user
                 continue
@@ -254,6 +261,8 @@ class Bot:
             return False
 
     def type_and_send_message(self, username):
+        self.messaged_users.append(username)  # Append after successful sending
+
         try:
             message_input_selector = "div[contenteditable='true'][data-lexical-editor='true']"
             message_box = WebDriverWait(self.bot, 20).until(
@@ -326,11 +335,26 @@ def init():
                 "We’re working on a tool that might help ease this process.\n\n"
                 "Would you be interested in hearing a bit more about it? Your input would be really valuable to us.\n\n"
                 "Thanks!")
-    
-    # Using the context manager
-    with BotContextManager(Bot('doronytoto1232345', '2HLqF,B*vk!,h;x', users, message_)) as bot:
-        input("Press Enter to finish...")
+
+    bot = None
+    try:
+        bot = Bot('doronytoto1232345', '2HLqF,B*vk!,h;x', users, message_)
+        bot.prevent_sleep()
+        bot.send_messages()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        if bot is not None:
+            bot.allow_sleep()
+            # Update the file with the users who have not been messaged
+            remaining_users = [user for user in users if user not in bot.messaged_users]
+            with open(file_path, 'w') as file:
+                for user in remaining_users:
+                    file.write(user + '\n')
+            print("Updated the file with remaining users.")
+        else:
+            print("Bot was not properly initialized.")
 
 
-
+# Call the init function
 init()
