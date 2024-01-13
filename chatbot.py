@@ -10,6 +10,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import TimeoutException
 from dotenv import load_dotenv
 
 class InstagramBot:
@@ -63,18 +65,25 @@ class InstagramBot:
             return False
 
     def close_popups(self):
-        time.sleep(5)  # Allow time for any popups to appear
+        time.sleep(2)  # Wait a bit for any popups to load
+        try:
+            # Close 'Save Login Info' Popup if it appears
+            save_info_popup = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[text()='Not Now']")))
+            save_info_popup.click()
+            print("Closed 'Save Login Info' popup.")
+        except TimeoutException:
+            print("No 'Save Login Info' popup found.")
 
-        # Attempt to close the first pop-up
-        instagram_logo_xpath = "//a[contains(@href, '/home') or contains(@href, '/')]"
-        first_popup_closed = self.dismiss_popup(instagram_logo_xpath, "Instagram logo")
+        try:
+            # Close 'Turn on Notifications' Popup if it appears
+            notifications_popup = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[text()='Not Now']")))
+            notifications_popup.click()
+            print("Closed 'Turn on Notifications' popup.")
+        except TimeoutException:
+            print("No 'Turn on Notifications' popup found.")
 
-        # Attempt to close the second pop-up
-        second_popup_selector = "//button[text()='Not Now']"  # Update if necessary
-        second_popup_closed = self.dismiss_popup(second_popup_selector, "Not Now for second popup")
-
-        # Return True if the first popup is closed and the second either closed or not found
-        return first_popup_closed and (second_popup_closed or not second_popup_closed)
 
     def dismiss_popup(self, selector, name):
         try:
@@ -89,19 +98,14 @@ class InstagramBot:
 
     def navigate_to_direct_messages(self):
         try:
-            wait = WebDriverWait(self.driver, 10)
-            # Update this XPath if needed based on the current structure of Instagram
-            direct_message_icon_xpath = "//svg[@aria-label='Direct']"
-            direct_message_icon = wait.until(EC.element_to_be_clickable((By.XPATH, direct_message_icon_xpath)))
+            wait = WebDriverWait(self.driver, 15)
+            direct_message_icon = wait.until(EC.element_to_be_clickable((By.XPATH, "//nav//a[contains(@href, '/direct/inbox/')]")))
             direct_message_icon.click()
             time.sleep(5)
-        except NoSuchElementException as e:
-            print("Direct message icon not found:", e)
+            return True
+        except TimeoutException:
+            print("Direct message icon not found or not clickable.")
             return False
-        except Exception as e:
-            print("Error navigating to direct messages:", e)
-            return False
-        return True
 
     def check_unread_messages(self):
         self.navigate_to_direct_messages()
