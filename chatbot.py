@@ -158,8 +158,8 @@ class InstagramBot:
         openai.api_key = os.getenv("OPENAI_API_KEY")
 
         # Prepare the conversation messages for the API
-        messages = [{"role": "system", "content": "You are an Instagram content creator named Doron, interacting in a friendly and helpful manner."}]
-        for line in prompt.split('\n'):
+        messages = [{"role": "system", "content": "You are Doron from ClipIt, continuing a converstion about content creation."}]
+        for line in prompt.split('\n')[-5:]:  # Consider only the last 5 messages for context
             if line.startswith("Me:"):
                 messages.append({"role": "assistant", "content": line[4:]})
             elif line.startswith("Other:"):
