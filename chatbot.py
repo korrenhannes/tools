@@ -1,6 +1,7 @@
 import time
 import pickle
 import os
+import openai
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -127,6 +128,19 @@ class InstagramBot:
                 # If unread indicator not found, skip to the next chat
                 continue
 
+    def generate_message(self, prompt):
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        try:
+            response = openai.Completion.create(
+                engine="text-davinci-003",  # or any other GPT-3.5 model
+                prompt=prompt,
+                max_tokens=50
+            )
+            return response.choices[0].text.strip()
+        except Exception as e:
+            print(f"Error in generating message: {e}")
+            return None
+        
     def close_browser(self):
         self.driver.quit()
 
