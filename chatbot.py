@@ -2,6 +2,7 @@ import time
 import pickle
 import os
 import openai
+import random
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -141,6 +142,32 @@ class InstagramBot:
             print(f"Error in generating message: {e}")
             return None
         
+    def respond_to_message(self, username, prompt):
+        try:
+            # Navigate to the user's profile and open the message box
+            if not self.interact_with_profile(username):
+                print(f"Could not interact with {username}'s profile.")
+                return
+
+            # Generate a message
+            message = self.generate_message(prompt)
+            if message:
+                # Find the message input box and type the message
+                message_box_selector = "div[contenteditable='true'][data-lexical-editor='true']"
+                message_box = WebDriverWait(self.bot, 20).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, message_box_selector)))
+                ActionChains(self.bot).click(message_box).perform()
+                for char in message:
+                    ActionChains(self.bot).send_keys(char).perform()
+                    time.sleep(random.uniform(0.1, 0.3))  # Random sleep between keystrokes
+
+                # Send the message
+                ActionChains(self.bot).send_keys(Keys.RETURN).perform()
+                print(f"Message sent to {username}.")
+            else:
+                print("Failed to generate a message.")
+        except Exception as e:
+            print(f"Error responding to message for {username}: {e}")
     def close_browser(self):
         self.driver.quit()
 
