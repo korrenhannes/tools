@@ -160,7 +160,7 @@ class InstagramBot:
             response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",  # Updated model name
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "system", "content": "You are a Instagram content creator that wrote the me: messages interacting with other content creator"},
                     {"role": "user", "content": prompt}
                 ]
             )
