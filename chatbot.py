@@ -98,8 +98,9 @@ class InstagramBot:
 
     def navigate_to_direct_messages(self):
         try:
-            wait = WebDriverWait(self.driver, 15)
-            direct_message_icon = wait.until(EC.element_to_be_clickable((By.XPATH, "//nav//a[contains(@href, '/direct/inbox/')]")))
+            wait = WebDriverWait(self.driver, 10)
+            # Updated XPath to match your provided HTML element
+            direct_message_icon = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[@aria-label='Direct messaging - 1 new notification link']")))
             direct_message_icon.click()
             time.sleep(5)
             return True
