@@ -189,6 +189,8 @@ class Bot:
             self.bot.get('https://www.instagram.com/')
             self.random_sleep(2, 5)
 
+            self.random_mouse_movement()
+
             # Hover over the search icon
             search_icon = WebDriverWait(self.bot, 30).until(
                 EC.presence_of_element_located((By.XPATH, "//span[descendant::*[@aria-label='Search']]")))
@@ -321,11 +323,12 @@ class Bot:
         sleep_time = abs(random.normalvariate(avg_duration, deviation))
         time.sleep(sleep_time)
 
-    def random_mouse_movement(driver):
-        action = ActionChains(driver)
-        x_offset = random.randint(-100, 100)
-        y_offset = random.randint(-100, 100)
+    def random_mouse_movement(self):
+        action = ActionChains(self.bot)
+        x_offset = random.randint(-50, 50)  # Reduced range
+        y_offset = random.randint(-50, 50)  # Reduced range
         action.move_by_offset(x_offset, y_offset).perform()
+
 
     def click_element(element):
         action = ActionChains(driver)
