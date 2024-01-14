@@ -170,6 +170,8 @@ class Bot:
         try:
             element = WebDriverWait(self.bot, 30).until(
                 EC.element_to_be_clickable((By.XPATH, selector)))
+            self.bot.execute_script("arguments[0].scrollIntoView(true);", element)
+
             element.click()
             print(f"Closed '{name}' popup.")
             return True
@@ -181,6 +183,9 @@ class Bot:
         if not self.close_popups():
             print("Failed to close all pop-ups. Cannot proceed to send messages.")
             return
+
+
+        message_count = 0
 
         main_window_handle = self.bot.current_window_handle
 
@@ -241,7 +246,24 @@ class Bot:
             # Random sleep before closing the tab to simulate reading time
             self.random_sleep(3, 4)
 
+                        # Call the external script after every 3 messages
+            message_count += 1
+            if message_count % 2 == 0:
+                print("Calling external script after 3 messages...")
+                self.call_external_script()
+
+            self.random_sleep(3, 4)
+
+
         print("All messages sent.")
+
+
+    def call_external_script(self):
+        try:
+            # Replace 'path/to/script.py' with the actual path to your script
+            subprocess.run(['python', '/Users/korrenhannes/Desktop/random shit/chatbot.py'], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"An error occurred while running the external script: {e}")
 
     def interact_with_profile(self, username):
         try:
@@ -253,6 +275,7 @@ class Bot:
             follow_button_xpath = "//button[contains(@class, '_acan') and contains(., 'Follow')]"
             follow_button = WebDriverWait(self.bot, 30).until(
                 EC.element_to_be_clickable((By.XPATH, follow_button_xpath)))
+            self.bot.execute_script("arguments[0].scrollIntoView(true);", follow_button)
             follow_button.click()
             print(f"Clicked 'Follow' button for {username}.")
             self.random_sleep(2, 5)
@@ -369,7 +392,7 @@ def init():
 
     bot = None
     try:
-        bot = Bot('doronytoto1232345', '2HLqF,B*vk!,h;x', users, message_)
+        bot = Bot('tomclipper1231232345', 'kokojaja123', users, message_)
         bot.prevent_sleep()
         bot.send_messages()
     except Exception as e:
