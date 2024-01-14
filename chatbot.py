@@ -3,6 +3,8 @@ import pickle
 import os
 import openai
 import random
+import logging
+import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -14,14 +16,17 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
+from requests.exceptions import ConnectionError
 from dotenv import load_dotenv
+import math
 
 class InstagramBot:
     def __init__(self, username, password):
         self.username = username
         self.password = password
         chrome_options = Options()
-        # chrome_options.add_argument("--headless") # Uncomment if you don't need a browser UI
+        # Uncomment the next line if headless browsing is desired
+        # chrome_options.add_argument("--headless")
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         self.cookies_file = "instagram_cookies.pkl"
         self.login()
@@ -154,32 +159,54 @@ class InstagramBot:
 
 
 
-    def generate_message(self, prompt):
+    def generate_message(self, prompt, max_retries=3, base_delay=5):
         openai.api_key = os.getenv("OPENAI_API_KEY")
 
-        # Prepare the conversation messages for the API
-        messages = [{"role": "system", "content": "You are Doron from ClipIt, continuing a converstion about content creation."}]
-        for line in prompt.split('\n')[-5:]:  # Consider only the last 5 messages for context
+        # Network check function
+        def check_network():
+            try:
+                requests.get('https://www.google.com/', timeout=5)
+                return True
+            except requests.ConnectionError:
+                return False
+
+        messages = [{"role": "system", "content": "You are Doron from ClipIt, continuing a conversation about content creation."}]
+        for line in prompt.split('\n')[-3:]:
             if line.startswith("Me:"):
                 messages.append({"role": "assistant", "content": line[4:]})
             elif line.startswith("Other:"):
                 messages.append({"role": "user", "content": line[7:]})
 
-        try:
-            response = openai.chat.completions.create(
-                model="gpt-4-1106-preview",
-                messages=messages
-            )
-            # Fetching only the latest response
-            return response.choices[0].message.content.strip()
-        except Exception as e:
-            print(f"Error in generating message: {e}")
-            return None
+        for attempt in range(max_retries):
+            try:
+                if not check_network():
+                    logging.error("No internet connection. Please check your network.")
+                    return None
+
+                response = openai.chat.completions.create(
+                    model="gpt-4-1106-preview",
+                    messages=messages
+                )
+                return response.choices[0].message.content.strip()
+            except Exception as e:
+                delay = base_delay * math.pow(2, attempt)
+                logging.warning(f"Attempt {attempt+1}: Connection error, retrying in {delay} seconds... Error: {e}")
+                time.sleep(delay)
+            except Exception as e:
+                logging.error(f"Attempt {attempt+1}: Error in generating message: {e}")
+                return None
+
+        logging.error("Failed to generate a message after all retries.")
+        return None
+
         
     def get_chat_history(self):
-        # Fetching chat messages from both users
-        other_user_messages = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'x6prxxf') and contains(@class, 'x1yc453h')]")
-        my_messages = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'x6prxxf') and contains(@class, 'x14ctfv')]")
+
+        time.sleep(5)  # Additional buffer to ensure all messages are loaded
+
+        # Fetching chat messages using specific XPaths based on class names
+        other_user_messages = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'xzsf02u')]")
+        my_messages = self.driver.find_elements(By.XPATH, "//div[contains(@class, 'x14ctfv')]")
 
         chat_history = []
         for message in other_user_messages:
