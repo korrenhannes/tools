@@ -170,7 +170,7 @@ class InstagramBot:
             except requests.ConnectionError:
                 return False
 
-        messages = [{"role": "system", "content": "You are Doron from ClipIt, continuing a conversation about content creation."}]
+        messages = [{"role": "system", "content": "You are Doron from ClipIt, continuing a conversation about Clipit content creation tool."}]
         for line in prompt.split('\n')[-3:]:
             if line.startswith("Me:"):
                 messages.append({"role": "assistant", "content": line[4:]})
