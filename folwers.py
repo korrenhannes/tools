@@ -237,8 +237,8 @@ class InstagramBot:
         self.run_shell_command("pkill caffeinate")
 
 if __name__ == "__main__":
-    USERNAME = 'doronytoto1232345'
-    PASSWORD = '2HLqF,B*vk!,h;x'
+    USERNAME = 'tomclipper1231232345'
+    PASSWORD = 'kokojaja123'
     TARGET_USERS = ['kindweirdwild', 'wordofmachine']
 
     bot = InstagramBot(USERNAME, PASSWORD, TARGET_USERS)
