@@ -12,6 +12,7 @@ from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
+from fake_useragent import UserAgent
 import subprocess
 
 
@@ -170,7 +171,7 @@ class Bot:
         try:
             element = WebDriverWait(self.bot, 30).until(
                 EC.element_to_be_clickable((By.XPATH, selector)))
-            self.bot.execute_script("arguments[0].scrollIntoView(true);", element)
+            self.bot.execute_script("arguments[0].scrollIntoView();", element)
             self.random_mouse_movement()  # Adding random mouse movement
             self.click_element(element)   # Using custom click function
             print(f"Closed '{name}' popup.")
@@ -195,6 +196,7 @@ class Bot:
             self.random_sleep(2, 5)
 
             self.random_mouse_movement()
+            self.scroll_like_human()
 
             # Hover over the search icon
             search_icon = WebDriverWait(self.bot, 30).until(
@@ -204,6 +206,10 @@ class Bot:
 
             # Click the search icon to open search input
             search_icon.click()
+            self.random_sleep(1, 3)
+
+            self.random_mouse_movement()
+            self.scroll_like_human()
             self.random_sleep(1, 3)
 
             # Find the search input element
@@ -233,6 +239,9 @@ class Bot:
             
 
             self.random_sleep(5, 10)
+            self.random_mouse_movement()
+            self.scroll_like_human()
+
 
             self.messaged_users.append(username)
 
@@ -289,6 +298,7 @@ class Bot:
             self.click_element(message_button)
             print(f"Clicked on message button for {username}. Waiting for message window to stabilize...")
             self.random_sleep(5, 10) # Wait for the message window to be fully loaded
+            self.scroll_like_human()
             return self.type_and_send_message(username)
         except Exception as e:
             print(f"Could not interact with {username}'s profile. Error: {e}")
@@ -345,7 +355,7 @@ class Bot:
             self.caffeinate_process.terminate()
             print("Allowing sleep mode.")
 
-    def human_like_sleep(avg_duration, deviation):
+    def human_like_sleep(self, avg_duration, deviation):
         sleep_time = abs(random.normalvariate(avg_duration, deviation))
         time.sleep(sleep_time)
 
@@ -357,16 +367,24 @@ class Bot:
 
 
     def click_element(self, element):
-        action = ActionChains(self.bot)
-        x_offset = random.randint(-5, 5)
-        y_offset = random.randint(-5, 5)
-        action.move_to_element_with_offset(element, x_offset, y_offset).click().perform()
+        try:
+            self.bot.execute_script("arguments[0].scrollIntoView();", element)
+            action = ActionChains(self.bot)
+            action.move_to_element(element).click().perform()
+        except Exception as e:
+            print(f"Error clicking element: {e}")
 
     def type_like_human(element, text):
         for char in text:
             time.sleep(random.uniform(0.05, 0.2))  # Mimic human typing speed
             element.send_keys(char)
 
+    def scroll_like_human(self):
+        scroll_times = random.randint(2, 6)
+        for _ in range(scroll_times):
+            scroll_direction = random.choice([Keys.PAGE_UP, Keys.PAGE_DOWN])
+            self.bot.find_element(By.TAG_NAME, 'body').send_keys(scroll_direction)
+            self.human_like_sleep(1, 0.5)
 
 class BotContextManager:
     def __init__(self, bot):
