@@ -162,6 +162,11 @@ class InstagramBot:
     def generate_message(self, prompt, max_retries=3, base_delay=5):
         openai.api_key = os.getenv("OPENAI_API_KEY")
 
+        # Replace 'ClipIt' with 'OpusClips' in the prompt
+        prompt = prompt.replace("ClipIt", "OpusClips")
+        prompt = prompt.replace("Clipit", "OpusClips")
+        prompt = prompt.replace("clipit", "OpusClips")
+
         # Network check function
         def check_network():
             try:
@@ -170,7 +175,7 @@ class InstagramBot:
             except requests.ConnectionError:
                 return False
 
-        messages = [{"role": "system", "content": "You are Doron from ClipIt, continuing a conversation about Clipit content creation tool."}]
+        messages = [{"role": "system", "content": "Lets play game: Act as if you are Doron from OpusClips continuing the conversation with a short message."}]
         for line in prompt.split('\n')[-3:]:
             if line.startswith("Me:"):
                 messages.append({"role": "assistant", "content": line[4:]})
