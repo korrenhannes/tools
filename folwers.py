@@ -10,6 +10,8 @@ import random
 import string
 import ctypes
 import subprocess
+import pickle  # Ensure this is imported
+
 
 
 class InstagramBot:
@@ -17,9 +19,11 @@ class InstagramBot:
         self.username = username
         self.password = password
         self.target_users = target_users
+        self.cookies_file = "instagram_cookies.pkl"  # Add this line
+
         # Set up Chrome options
         chrome_options = Options()
-        chrome_options.add_argument("--headless")  # Run in headless mode
+#        chrome_options.add_argument("--headless")  # Run in headless mode
         chrome_options.add_argument("--no-sandbox")  # Bypass OS security model
         chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
 
@@ -28,32 +32,61 @@ class InstagramBot:
     def close_browser(self):
         self.driver.close()
 
-    def login(self):
+    def save_cookies(self):
+        with open(self.cookies_file, "wb") as file:
+            pickle.dump(self.driver.get_cookies(), file)
+
+    def load_cookies(self):
         try:
-            self.driver.get('https://www.instagram.com/accounts/login/')
-            time.sleep(random.uniform(3, 5))
-            # Wait and click the 'Decline optional cookies' button
+            with open(self.cookies_file, "rb") as file:
+                cookies = pickle.load(file)
+                for cookie in cookies:
+                    self.driver.add_cookie(cookie)
+            return True
+        except (FileNotFoundError, pickle.UnpicklingError):
+            return False
+        
+    def login(self):
+        self.driver.get("https://www.instagram.com/")
+        time.sleep(2)
+
+        if not self.load_cookies():
+            # Navigate to login page
             try:
-                decline_cookies_button = WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Decline optional cookies')]")))
-                decline_cookies_button.click()
-                time.sleep(random.uniform(3, 5))  # Short pause after clicking
+                self.driver.get('https://www.instagram.com/accounts/login/')
+                time.sleep(random.uniform(3, 5))
+
+                # Wait and click the 'Decline optional cookies' button
+                try:
+                    decline_cookies_button = WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Decline optional cookies')]")))
+                    decline_cookies_button.click()
+                    time.sleep(random.uniform(3, 5))
+                except Exception as e:
+                    print(f"Optional cookies button not found or error clicking it: {e}")
+
+                # Input username and password
+                username_input = WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.NAME, 'username')))
+                password_input = WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.NAME, 'password')))
+
+                username_input.send_keys(self.username)
+                password_input.send_keys(self.password)
+                password_input.send_keys(Keys.RETURN)
+                time.sleep(random.uniform(5, 7))
+
+                # Save cookies after successful login
+                self.save_cookies()
+
             except Exception as e:
-                print(f"Optional cookies button not found or error clicking it: {e}")
+                print(f"Error during login: {e}")
+                self.close_browser()
+        else:
+            # Wait for page to load with cookies
+            time.sleep(5)
+            self.driver.get("https://www.instagram.com/")  # Refresh the page after loading cookies
 
-            username_input = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.NAME, 'username')))
-            password_input = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.NAME, 'password')))
-
-            username_input.send_keys(self.username)
-            password_input.send_keys(self.password)
-            password_input.send_keys(Keys.RETURN)
-
-            time.sleep(random.uniform(5, 7))
-        except Exception as e:
-            print(f"Error during login: {e}")
-            self.close_browser()
 
     def get_followers(self):
         followers = {}
