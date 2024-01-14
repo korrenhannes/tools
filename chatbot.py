@@ -176,7 +176,7 @@ class InstagramBot:
                 return False
 
         messages = [{"role": "system", "content": "Lets play game: Act as if you are Doron from OpusClips continuing the conversation with a short message."}]
-        for line in prompt.split('\n')[-3:]:
+        for line in prompt.split('\n')[-6:]:
             if line.startswith("Me:"):
                 messages.append({"role": "assistant", "content": line[4:]})
             elif line.startswith("Other:"):
@@ -192,7 +192,9 @@ class InstagramBot:
                     model="gpt-4-1106-preview",
                     messages=messages
                 )
-                return response.choices[0].message.content.strip()
+                message_content = response.choices[0].message.content.strip()
+                return message_content.replace("OpusClips", "ClipIt")
+
             except Exception as e:
                 delay = base_delay * math.pow(2, attempt)
                 logging.warning(f"Attempt {attempt+1}: Connection error, retrying in {delay} seconds... Error: {e}")
