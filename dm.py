@@ -171,8 +171,8 @@ class Bot:
             element = WebDriverWait(self.bot, 30).until(
                 EC.element_to_be_clickable((By.XPATH, selector)))
             self.bot.execute_script("arguments[0].scrollIntoView(true);", element)
-
-            element.click()
+            self.random_mouse_movement()  # Adding random mouse movement
+            self.click_element(element)   # Using custom click function
             print(f"Closed '{name}' popup.")
             return True
         except Exception as e:
@@ -276,14 +276,17 @@ class Bot:
             follow_button = WebDriverWait(self.bot, 30).until(
                 EC.element_to_be_clickable((By.XPATH, follow_button_xpath)))
             self.bot.execute_script("arguments[0].scrollIntoView(true);", follow_button)
-            follow_button.click()
+            self.random_mouse_movement()
+            self.click_element(follow_button)
             print(f"Clicked 'Follow' button for {username}.")
             self.random_sleep(2, 5)
             
             message_button_xpath = "//div[contains(@class, 'x1i10hfl') and contains(text(), 'Message')]"
             message_button = WebDriverWait(self.bot, 30).until(
                 EC.element_to_be_clickable((By.XPATH, message_button_xpath)))
-            message_button.click()
+            self.bot.execute_script("arguments[0].scrollIntoView(true);", message_button)
+            self.random_mouse_movement()
+            self.click_element(message_button)
             print(f"Clicked on message button for {username}. Waiting for message window to stabilize...")
             self.random_sleep(5, 10) # Wait for the message window to be fully loaded
             return self.type_and_send_message(username)
@@ -348,13 +351,13 @@ class Bot:
 
     def random_mouse_movement(self):
         action = ActionChains(self.bot)
-        x_offset = random.randint(-50, 50)  # Reduced range
-        y_offset = random.randint(-50, 50)  # Reduced range
+        x_offset = random.randint(-10, 10)  # Reduced range
+        y_offset = random.randint(-10, 10)  # Reduced range
         action.move_by_offset(x_offset, y_offset).perform()
 
 
-    def click_element(element):
-        action = ActionChains(driver)
+    def click_element(self, element):
+        action = ActionChains(self.bot)
         x_offset = random.randint(-5, 5)
         y_offset = random.randint(-5, 5)
         action.move_to_element_with_offset(element, x_offset, y_offset).click().perform()
