@@ -382,11 +382,16 @@ class Bot:
 
     def click_element(self, element):
         try:
-            self.bot.execute_script("arguments[0].scrollIntoView();", element)
+            self.scroll_to_element(element)  # Scroll to the element first
             action = ActionChains(self.bot)
             action.move_to_element(element).click().perform()
         except Exception as e:
             print(f"Error clicking element: {e}")
+
+    def scroll_to_element(self, element):
+        """Scrolls to a specific element on the page."""
+        self.bot.execute_script("arguments[0].scrollIntoView(true);", element)
+        self.random_sleep(1, 2)  # Adding a brief pause after scrolling
 
     def type_like_human(element, text):
         for char in text:
