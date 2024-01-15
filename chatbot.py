@@ -35,14 +35,16 @@ class InstagramBot:
     def login(self):
         self.driver.get("https://www.instagram.com/")
         if not self.load_cookies():
-            time.sleep(2)
+            self.human_like_sleep(3, 2)
             username_input = self.driver.find_element(By.NAME, "username")
             password_input = self.driver.find_element(By.NAME, "password")
 
-            username_input.send_keys(self.username)
-            password_input.send_keys(self.password)
+            # Human-like typing for username and password
+            self.type_like_human(username_input, self.username)
+            self.type_like_human(password_input, self.password)
+
             password_input.send_keys(Keys.RETURN)
-            time.sleep(5)
+            self.human_like_sleep(5, 2)
 
             # Save cookies after successful login
             self.save_cookies()
@@ -51,11 +53,11 @@ class InstagramBot:
             self.close_popups()
         else:
             # Wait for page to load with cookies
-            time.sleep(5)
+            self.human_like_sleep(5, 2)
 
             self.close_popups()
 
-            time.sleep(5)
+            self.human_like_sleep(5, 2)
 
     def save_cookies(self):
         with open(self.cookies_file, "wb") as file:
@@ -127,6 +129,7 @@ class InstagramBot:
             try:
                 # Check if the unread indicator element is present
                 chat.find_element(By.XPATH, ".//span[contains(@class, 'x6s0dn4') and contains(@class, 'xzolkzo')]")
+                self.random_mouse_movement()
                 chat.click()  # Open the conversation
                 time.sleep(2)
 
@@ -153,7 +156,7 @@ class InstagramBot:
                     print("Failed to generate a message.")
 
                 self.driver.back()  # Go back to the chat list
-                time.sleep(2)
+                self.human_like_sleep(2, 1)
 
             except NoSuchElementException:
                 # If unread indicator not found, skip to the next chat
@@ -271,7 +274,7 @@ class InstagramBot:
         except Exception as e:
             print(f"Error clicking element: {e}")
 
-    def type_like_human(element, text):
+    def type_like_human(self, element, text):
         for char in text:
             time.sleep(random.uniform(0.05, 0.2))  # Mimic human typing speed
             element.send_keys(char)

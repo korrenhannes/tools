@@ -199,6 +199,12 @@ class Bot:
         main_window_handle = self.bot.current_window_handle
 
         for username in self.users:
+
+            message_count += 1
+            if message_count % 1 == 0:
+                print("Calling external script after 3 messages...")
+                self.call_external_script()
+
             # Navigate to Instagram's main page
             self.bot.get('https://www.instagram.com/')
             self.random_sleep(2, 5)
