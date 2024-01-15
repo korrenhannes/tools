@@ -26,9 +26,25 @@ class InstagramBot:
         self.username = username
         self.password = password
         chrome_options = Options()
+
+
+        # Set random user-agent
+        chrome_options.add_argument(f'user-agent={UserAgent().random}')
+        
+
+        # Update this path to the location where you have unzipped the proxy authentication extension
+        unzipped_proxy_auth_plugin_path = '/Users/korrenhannes/Desktop/random shit/proxy_auth_plugin/prox/Archive'
+
+        # Add the proxy authentication extension
+        chrome_options.add_argument(f'--load-extension={unzipped_proxy_auth_plugin_path}')
+
+        # Add proxy settings
+        chrome_options.add_argument(f'--proxy-server={PROXY_HOST}:{PROXY_HOST}')
+
         # Uncomment the next line if headless browsing is desired
         # chrome_options.add_argument("--headless")
-        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        service = Service(ChromeDriverManager().install())
+        self.driver = webdriver.Chrome(service=service, options=chrome_options)
         self.cookies_file = "instagram_cookies.pkl"
         self.login()
 
@@ -293,6 +309,10 @@ class InstagramBot:
 load_dotenv()
 INSTAGRAM_USERNAME = os.getenv('INSTAGRAM_USERNAME')
 INSTAGRAM_PASSWORD = os.getenv('INSTAGRAM_PASSWORD')
+
+# Proxy settings - replace with your own
+PROXY_HOST = 'gate.smartproxy.com'
+PROXY_PORT = '1001'
 
 # Usage
 bot = InstagramBot(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD)
