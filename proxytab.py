@@ -8,7 +8,7 @@ proxy_host = 'gate.smartproxy.com'
 proxy_port = '10001'
 
 # Path to the proxy authentication Chrome extension
-proxy_auth_plugin_path = '/Users/korrenhannes/Desktop/random shit/proxy_auth_plugin.zip'
+proxy_auth_plugin_path = '/Users/korrenhannes/Desktop/random shit/proxy_auth_plugin/Archive.zip'
 
 # Create a Chrome Options object to configure ChromeDriver
 options = Options()
