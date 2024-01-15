@@ -12,21 +12,34 @@ from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.service import Service
 from fake_useragent import UserAgent
 from dotenv import load_dotenv
 import subprocess
+import selenium
 
+print(selenium.__version__)
 
 options = webdriver.ChromeOptions()
 
 # Set random user-agent
 options.add_argument(f'user-agent={UserAgent().random}')
 
-driver = webdriver.Chrome(options=options)
+
+# Update this path to the location where you have unzipped the proxy authentication extension
+unzipped_proxy_auth_plugin_path = '/Users/korrenhannes/Desktop/random shit/proxy_auth_plugin/prox/Archive'
+
+# Add the proxy authentication extension
+options.add_argument(f'--load-extension={unzipped_proxy_auth_plugin_path}')
 
 
-# enter receiver user name
-user = ['User_name', 'User_name ']
+proxy_host = 'gate.smartproxy.com'
+proxy_port = '10001'
+options.add_argument(f'--proxy-server={proxy_host}:{proxy_port}')
+
+service = Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=service, options=options)
+
 
 # Function to read followers from file
 def read_followers_from_file(file_path):
