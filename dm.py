@@ -154,18 +154,26 @@ class Bot:
         self.random_sleep(2, 5)
 
     def close_popups(self):
-        time.sleep(5)  # Allow time for any popups to appear
+        try:
+            # Second pop-up
+            WebDriverWait(self.bot, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[text()='Not Now']"))
+            ).click()
+            print("Closed 'Not Now for second popup' popup.")
+        except TimeoutException:
+            print("No 'Not Now for second popup' popup found.")
 
-        # Attempt to close the first pop-up
-        instagram_logo_xpath = "//a[contains(@href, '/home') or contains(@href, '/')]"
-        first_popup_closed = self.dismiss_popup(instagram_logo_xpath, "Instagram logo")
-
-        # Attempt to close the second pop-up
-        second_popup_selector = "//button[text()='Not Now']"  # Update if necessary
-        second_popup_closed = self.dismiss_popup(second_popup_selector, "Not Now for second popup")
+        try:
+            # First pop-up
+            WebDriverWait(self.bot, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/home') or contains(@href, '/')]"))
+            ).click()
+            print("Closed 'Instagram logo' popup.")
+        except TimeoutException:
+            print("No 'Instagram logo' popup found.")
 
         # Return True if the first popup is closed and the second either closed or not found
-        return first_popup_closed and (second_popup_closed or not second_popup_closed)
+        return True
 
     def dismiss_popup(self, selector, name):
         try:
@@ -257,7 +265,7 @@ class Bot:
 
                         # Call the external script after every 3 messages
             message_count += 1
-            if message_count % 2 == 0:
+            if message_count % 1 == 0:
                 print("Calling external script after 3 messages...")
                 self.call_external_script()
 
@@ -269,10 +277,12 @@ class Bot:
 
     def call_external_script(self):
         try:
-            # Replace 'path/to/script.py' with the actual path to your script
-            subprocess.run(['python', '/Users/korrenhannes/Desktop/random shit/chatbot.py'], check=True)
+            result = subprocess.run(['python', '/Users/korrenhannes/Desktop/random shit/chatbot.py'], check=True, capture_output=True, text=True)
+            print("External script output:", result.stdout)
         except subprocess.CalledProcessError as e:
             print(f"An error occurred while running the external script: {e}")
+            print("Script output:", e.output)
+            print("Script stderr:", e.stderr)
 
     def interact_with_profile(self, username):
         try:
@@ -302,6 +312,10 @@ class Bot:
             return self.type_and_send_message(username)
         except Exception as e:
             print(f"Could not interact with {username}'s profile. Error: {e}")
+            message_count += 1
+            if message_count % 1 == 0:
+                print("Calling external script after 3 messages...")
+                self.call_external_script()
             return False
 
     def type_and_send_message(self, username):
