@@ -39,7 +39,7 @@ class InstagramBot:
         chrome_options.add_argument(f'--load-extension={unzipped_proxy_auth_plugin_path}')
 
         # Add proxy settings
-        chrome_options.add_argument(f'--proxy-server={PROXY_HOST}:{PROXY_HOST}')
+        chrome_options.add_argument(f'--proxy-server={PROXY_HOST}:{PROXY_PORT}')
 
         # Uncomment the next line if headless browsing is desired
         # chrome_options.add_argument("--headless")
