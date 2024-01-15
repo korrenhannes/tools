@@ -13,6 +13,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
 from fake_useragent import UserAgent
+from dotenv import load_dotenv
 import subprocess
 
 
@@ -201,7 +202,7 @@ class Bot:
         for username in self.users:
 
             message_count += 1
-            if message_count % 1 == 0:
+            if message_count % 2 == 0:
                 print("Calling external script after 3 messages...")
                 self.call_external_script()
 
@@ -269,11 +270,6 @@ class Bot:
             # Random sleep before closing the tab to simulate reading time
             self.random_sleep(3, 4)
 
-                        # Call the external script after every 3 messages
-            message_count += 1
-            if message_count % 1 == 0:
-                print("Calling external script after 3 messages...")
-                self.call_external_script()
 
             self.random_sleep(3, 4)
 
@@ -423,6 +419,11 @@ class BotContextManager:
         self.bot.allow_sleep()
 
 
+load_dotenv()
+INSTAGRAM_USERNAME = os.getenv('INSTAGRAM_USERNAME')
+INSTAGRAM_PASSWORD = os.getenv('INSTAGRAM_PASSWORD')
+
+
 def init():
     # Path to the file containing followers
     file_path = '/Users/korrenhannes/Desktop/random shit/followers.txt'
@@ -438,7 +439,7 @@ def init():
 
     bot = None
     try:
-        bot = Bot('tomclipper1231232345', 'kokojaja123', users, message_)
+        bot = Bot('INSTAGRAM_USERNAME', 'INSTAGRAM_PASSWORD', users, message_)
         bot.prevent_sleep()
         bot.send_messages()
     except Exception as e:
