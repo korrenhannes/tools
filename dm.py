@@ -253,7 +253,7 @@ class Bot:
 
             self.messaged_users.append(username)
 
-            if not self.interact_with_profile(username):
+            if not self.interact_with_profile(username, message_count):
                 # Close the tab if interaction failed and continue with the next user
                 continue
 
@@ -284,7 +284,7 @@ class Bot:
             print("Script output:", e.output)
             print("Script stderr:", e.stderr)
 
-    def interact_with_profile(self, username):
+    def interact_with_profile(self, username, message_count):
         try:
 
             # Wait for the profile to fully load
