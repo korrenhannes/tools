@@ -77,7 +77,7 @@ class Bot:
     def is_logged_in(self):
         # Modify this function to check for a specific element that indicates a logged-in state
         try:
-            WebDriverWait(self.bot, 30).until(
+            WebDriverWait(self.bot, 20).until(
                 EC.presence_of_element_located((By.XPATH, "//span[descendant::*[@aria-label='Search']]")))
             return True
         except TimeoutException:
@@ -106,7 +106,7 @@ class Bot:
                 print("Failed to log in with cookies. Proceeding with regular login.")
 
         try:
-            decline_cookies_button = WebDriverWait(self.driver, 30).until(
+            decline_cookies_button = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Decline optional cookies')]")))
             decline_cookies_button.click()
             time.sleep(random.uniform(3, 5))  # Short pause after clicking
@@ -116,7 +116,7 @@ class Bot:
 
         # Check and handle the second cookie dialog option
         try:
-            decline_cookies_button = WebDriverWait(self.bot, 30).until(
+            decline_cookies_button = WebDriverWait(self.bot, 20).until(
                 EC.presence_of_element_located((By.XPATH, "//button[contains(@class, '_a9-- _ap36 _a9_1')]")))
             decline_cookies_button.click()
             print("Declined optional cookies using the second dialog option.")
@@ -125,10 +125,10 @@ class Bot:
             print(f"Second cookie dialog option not found. Error: {e}")
 
 
-        enter_username = WebDriverWait(self.bot, 30).until(
+        enter_username = WebDriverWait(self.bot, 20).until(
             EC.presence_of_element_located((By.NAME, 'username')))
         enter_username.send_keys(self.username)
-        enter_password = WebDriverWait(self.bot, 30).until(
+        enter_password = WebDriverWait(self.bot, 20).until(
             EC.presence_of_element_located((By.NAME, 'password')))
         enter_password.send_keys(self.password)
         enter_password.send_keys(Keys.RETURN)
