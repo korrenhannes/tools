@@ -17,6 +17,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException
 from requests.exceptions import ConnectionError
+from fake_useragent import UserAgent
 from dotenv import load_dotenv
 import math
 
@@ -250,6 +251,37 @@ class InstagramBot:
                 print("Failed to generate a message.")
         except Exception as e:
             print(f"Error responding to message for {username}: {e}")
+
+    def human_like_sleep(self, avg_duration, deviation):
+        sleep_time = abs(random.normalvariate(avg_duration, deviation))
+        time.sleep(sleep_time)
+
+    def random_mouse_movement(self):
+        action = ActionChains(self.bot)
+        x_offset = random.randint(-10, 10)  # Reduced range
+        y_offset = random.randint(-10, 10)  # Reduced range
+        action.move_by_offset(x_offset, y_offset).perform()
+
+
+    def click_element(self, element):
+        try:
+            self.bot.execute_script("arguments[0].scrollIntoView();", element)
+            action = ActionChains(self.bot)
+            action.move_to_element(element).click().perform()
+        except Exception as e:
+            print(f"Error clicking element: {e}")
+
+    def type_like_human(element, text):
+        for char in text:
+            time.sleep(random.uniform(0.05, 0.2))  # Mimic human typing speed
+            element.send_keys(char)
+
+    def scroll_like_human(self):
+        scroll_times = random.randint(2, 6)
+        for _ in range(scroll_times):
+            scroll_direction = random.choice([Keys.PAGE_UP, Keys.PAGE_DOWN])
+            self.bot.find_element(By.TAG_NAME, 'body').send_keys(scroll_direction)
+            self.human_like_sleep(1, 0.5)
 
     def close_browser(self):
         self.driver.quit()
