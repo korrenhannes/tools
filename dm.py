@@ -81,11 +81,14 @@ class Bot:
         try:
             with open(self.cookies_file, "rb") as file:
                 cookies = pickle.load(file)
+                if not cookies:  # Check if the cookies list is empty
+                    print("No cookies found in the file.")
+                    return False
                 for cookie in cookies:
                     self.bot.add_cookie(cookie)
             return True
-        except FileNotFoundError:
-            print("Cookies file not found.")
+        except (FileNotFoundError, EOFError) as e:
+            print(f"Error loading cookies: {e}")
             return False
 
     def is_logged_in(self):
@@ -120,9 +123,9 @@ class Bot:
                 print("Failed to log in with cookies. Proceeding with regular login.")
 
         try:
-            decline_cookies_button = WebDriverWait(self.driver, 20).until(
+            decline_cookies_button = WebDriverWait(self.bot, 20).until(
                 EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Decline optional cookies')]")))
-            decline_cookies_button.click()
+            self.click_element(decline_cookies_button)
             time.sleep(random.uniform(3, 5))  # Short pause after clicking
         except Exception as e:
             print(f"Optional cookies button not found or error clicking it: {e}")
@@ -132,19 +135,28 @@ class Bot:
         try:
             decline_cookies_button = WebDriverWait(self.bot, 20).until(
                 EC.presence_of_element_located((By.XPATH, "//button[contains(@class, '_a9-- _ap36 _a9_1')]")))
-            decline_cookies_button.click()
+            self.click_element(decline_cookies_button)
             print("Declined optional cookies using the second dialog option.")
             time.sleep(random.uniform(3, 5))  # Short pause after clicking
         except Exception as e:
             print(f"Second cookie dialog option not found. Error: {e}")
 
-
         enter_username = WebDriverWait(self.bot, 20).until(
             EC.presence_of_element_located((By.NAME, 'username')))
-        enter_username.send_keys(self.username)
+        # Type the username letter by letter
+        for char in self.username:
+            enter_username.send_keys(char)
+            time.sleep(random.uniform(0.1, 0.3))  # Random sleep between keystrokes
+
         enter_password = WebDriverWait(self.bot, 20).until(
             EC.presence_of_element_located((By.NAME, 'password')))
-        enter_password.send_keys(self.password)
+        # Type the password letter by letter
+        for char in self.password:
+            enter_password.send_keys(char)
+            time.sleep(random.uniform(0.1, 0.3))  # Random sleep between keystrokes
+
+        time.sleep(random.uniform(10, 15))  # Random sleep between keystrokes
+
         enter_password.send_keys(Keys.RETURN)
         time.sleep(5)
 
@@ -170,18 +182,19 @@ class Bot:
     def close_popups(self):
         try:
             # Second pop-up
-            WebDriverWait(self.bot, 10).until(
-                EC.element_to_be_clickable((By.XPATH, "//button[text()='Not Now']"))
-            ).click()
+            not_now_button = WebDriverWait(self.bot, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//button[text()='Not Now']")))
+            self.click_element(not_now_button)
             print("Closed 'Not Now for second popup' popup.")
         except TimeoutException:
             print("No 'Not Now for second popup' popup found.")
 
         try:
             # First pop-up
-            WebDriverWait(self.bot, 10).until(
-                EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/home') or contains(@href, '/')]"))
-            ).click()
+            insta_logo_button = WebDriverWait(self.bot, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/home') or contains(@href, '/')]")))
+            self.click_element(insta_logo_button)
+
             print("Closed 'Instagram logo' popup.")
         except TimeoutException:
             print("No 'Instagram logo' popup found.")
@@ -233,7 +246,8 @@ class Bot:
             self.random_sleep(1, 3)
 
             # Click the search icon to open search input
-            search_icon.click()
+            self.click_element(search_icon)
+
             self.random_sleep(1, 3)
 
             self.random_mouse_movement()
@@ -257,7 +271,8 @@ class Bot:
             profile_xpath = f"//a[contains(@href, '/{username}/')]"
             profile_link = WebDriverWait(self.bot, 30).until(
                 EC.presence_of_element_located((By.XPATH, profile_xpath)))
-            profile_link.click()
+            self.click_element(profile_link)
+
             self.random_sleep(3, 6)
 
 
@@ -397,16 +412,27 @@ class Bot:
 
     def click_element(self, element):
         try:
-            self.scroll_to_element(element)  # Scroll to the element first
-            action = ActionChains(self.bot)
-            action.move_to_element(element).click().perform()
+            # Ensure the element is in the viewport
+            self.bot.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});", element)
+            self.random_sleep(1, 2)  # Adding a brief pause after scrolling
+
+            # Check if element is visible and clickable
+            if element.is_displayed() and element.is_enabled():
+                action = ActionChains(self.bot)
+                action.move_to_element(element).click().perform()
+            else:
+                print(f"Element not visible or not enabled: {element}")
         except Exception as e:
             print(f"Error clicking element: {e}")
 
+
     def scroll_to_element(self, element):
-        """Scrolls to a specific element on the page."""
-        self.bot.execute_script("arguments[0].scrollIntoView(true);", element)
-        self.random_sleep(1, 2)  # Adding a brief pause after scrolling
+        try:
+            # Scroll smoothly to the element, centering it in the viewport
+            self.bot.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});", element)
+            self.random_sleep(1, 2)  # Pause after scrolling to allow for any lazy-loaded content
+        except Exception as e:
+            print(f"Error scrolling to element: {e}")
 
     def type_like_human(element, text):
         for char in text:
@@ -452,7 +478,7 @@ def init():
 
     bot = None
     try:
-        bot = Bot('INSTAGRAM_USERNAME', 'INSTAGRAM_PASSWORD', users, message_)
+        bot = Bot(INSTAGRAM_USERNAME, INSTAGRAM_PASSWORD, users, message_)
         bot.prevent_sleep()
         bot.send_messages()
     except Exception as e:
