@@ -123,6 +123,8 @@ class InstagramBot:
             return False
 
     def navigate_to_direct_messages(self):
+        self.close_popups()
+
         try:
             wait = WebDriverWait(self.driver, 10)
             # Updated XPath to match your provided HTML element
@@ -142,6 +144,8 @@ class InstagramBot:
 
         chat_list = self.driver.find_elements(By.XPATH, "//div[@role='listitem']")
         for chat in chat_list:
+            self.close_popups()
+
             try:
                 # Check if the unread indicator element is present
                 chat.find_element(By.XPATH, ".//span[contains(@class, 'x6s0dn4') and contains(@class, 'xzolkzo')]")
