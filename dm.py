@@ -169,7 +169,11 @@ class Bot:
         self.send_messages()
 
     def random_sleep(self, min_seconds, max_seconds):
-        time.sleep(random.uniform(min_seconds, max_seconds))
+        mean_sleep_time = (min_seconds + max_seconds) / 2  # Calculate the mean
+        sigma = (max_seconds - min_seconds) / 6  # Calculate standard deviation for a reasonable spread
+        sleep_time = random.gauss(mean_sleep_time, sigma)
+        sleep_time = max(min_seconds, min(sleep_time, max_seconds))  # Ensure sleep time is within the given range
+        time.sleep(sleep_time)
 
     def scroll_page(self):
         scroll_command = "window.scrollTo(0, document.body.scrollHeight);"
@@ -402,10 +406,12 @@ class Bot:
 
     def random_mouse_movement(self):
         action = ActionChains(self.bot)
-        x_offset = random.randint(-10, 10)  # Reduced range
-        y_offset = random.randint(-10, 10)  # Reduced range
-        action.move_by_offset(x_offset, y_offset).perform()
-
+        # Simulate a more complex path
+        for _ in range(random.randint(3, 6)):
+            x_offset = random.randint(-10, 10)
+            y_offset = random.randint(-10, 10)
+            action.move_by_offset(x_offset, y_offset).perform()
+            self.random_sleep(1, 2)
 
     def click_element(self, element):
         try:
@@ -437,10 +443,10 @@ class Bot:
             element.send_keys(char)
 
     def scroll_like_human(self):
-        scroll_times = random.randint(2, 6)
-        for _ in range(scroll_times):
-            scroll_direction = random.choice([Keys.PAGE_UP, Keys.PAGE_DOWN])
-            self.bot.find_element(By.TAG_NAME, 'body').send_keys(scroll_direction)
+        body_element = self.bot.find_element(By.TAG_NAME, 'body')
+        for _ in range(random.randint(2, 6)):
+            scroll_direction = random.choice([Keys.PAGE_UP, Keys.PAGE_DOWN, Keys.ARROW_UP, Keys.ARROW_DOWN])
+            body_element.send_keys(scroll_direction)
             self.human_like_sleep(1, 0.5)
 
 class BotContextManager:
