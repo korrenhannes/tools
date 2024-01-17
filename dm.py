@@ -228,7 +228,7 @@ class Bot:
         for username in self.users:
 
             message_count += 1
-            if message_count % 2 == 0:
+            if message_count % 5 == 0:
                 print("Calling external script after 3 messages...")
                 self.call_external_script()
 
@@ -343,9 +343,6 @@ class Bot:
         except Exception as e:
             print(f"Could not interact with {username}'s profile. Error: {e}")
             message_count += 1
-            if message_count % 1 == 0:
-                print("Calling external script after 3 messages...")
-                self.call_external_script()
             return False
 
     def type_and_send_message(self, username):
