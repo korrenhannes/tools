@@ -4,8 +4,8 @@ from selenium.webdriver.chrome.options import Options
 # Smartproxy credentials and proxy details
 username = 'sp9zw4gx22'
 password = 'kXeSr49iPa5oxhLw3z'
-proxy_host = 'gate.smartproxy.com'
-proxy_port = '10001'
+proxy_host = 'tm.smartproxy.com'
+proxy_port = '47001'
 
 # Path to the proxy authentication Chrome extension
 proxy_auth_plugin_path = '/Users/korrenhannes/Desktop/random shit/proxy_auth_plugin/Archive.zip'
