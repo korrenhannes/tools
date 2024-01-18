@@ -11,6 +11,8 @@ import string
 import ctypes
 import subprocess
 import pickle  # Ensure this is imported
+import os
+from dotenv import load_dotenv
 
 
 
@@ -237,8 +239,13 @@ class InstagramBot:
         self.run_shell_command("pkill caffeinate")
 
 if __name__ == "__main__":
-    USERNAME = ''
-    PASSWORD = ''
+
+    load_dotenv()
+    INSTAGRAM_USERNAME = os.getenv('INSTAGRAM_USERNAME')
+    INSTAGRAM_PASSWORD = os.getenv('INSTAGRAM_PASSWORD')
+
+    USERNAME = INSTAGRAM_USERNAME
+    PASSWORD = INSTAGRAM_PASSWORD
     TARGET_USERS = ['kindweirdwild', 'wordofmachine']
 
     bot = InstagramBot(USERNAME, PASSWORD, TARGET_USERS)
