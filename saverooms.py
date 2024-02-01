@@ -39,31 +39,27 @@ try:
     driver.execute_script("document.body.style.zoom='90%'")
     time.sleep(1)  # Small pause to ensure the page has adjusted to the scroll
 
-    # Click on the calendar button
-    calendar_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "calendar_toggle")))
-    calendar_button.click()
+    top_element = driver.find_element(By.CSS_SELECTOR, "body")
+    driver.execute_script("arguments[0].scrollIntoView(true);", top_element)
+    time.sleep(1)  # Allow time for scrolling
 
-    # Calculate the date one week from today
+    # Use JavaScript to directly click the calendar button
+    calendar_button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "calendar_toggle")))
+    driver.execute_script("arguments[0].click();", calendar_button)
+
+
+    # Calculate one week from today
     target_date = datetime.today() + timedelta(days=7)
-    target_day = target_date.day
-    target_month = target_date.month - 1  # DatePicker months are 0-indexed
+    target_day = target_date.strftime("%d").lstrip('0')  # Remove leading zero for single digit days
+    target_month = target_date.month - 1  # Adjust for zero-based indexing in JavaScript
     target_year = target_date.year
 
-    # Wait for the datepicker to appear
-    WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "datepicker")))
+    # Construct the XPath for the target date, ensuring it's clickable
+    date_xpath = f"//td[@data-handler='selectDay'][@data-month='{target_month}'][@data-year='{target_year}']/a[text()='{target_day}']"
+    target_date_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, date_xpath)))
 
-    # Find and click the correct date
-    date_button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, f"//td[@data-handler='selectDay'][@data-month='{target_month}'][@data-year='{target_year}']/a[text()='{target_day}']"))
-    )
-    date_button.click()
-
-    # Wait for the datepicker to become visible
-    WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "datepicker")))
-
-    # Select the target date
-    target_date_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, date_selector)))
-    target_date_element.click()
+    # Use JavaScript to click the target date to avoid any potential overlay issues
+    driver.execute_script("arguments[0].click();", target_date_element)
 
 
     # Wait for the schedule page to load
