@@ -1,10 +1,12 @@
 import random
 import time
+from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 
 # Initialize WebDriver
 options = webdriver.ChromeOptions()
@@ -25,6 +27,44 @@ try:
     password_field.send_keys(your_password)
     login_button = driver.find_element(By.CSS_SELECTOR, "button[name='login'][value='submit']")
     login_button.click()
+
+
+    # Wait for the schedule page to load
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "page-schedule")))
+
+    # Scroll to the top of the page before clicking the calendar button
+    driver.execute_script("window.scrollTo(0, -100);")  # Scrolls above the top of the page
+    time.sleep(1)  # Small pause to ensure the page has adjusted to the scroll
+
+    driver.execute_script("document.body.style.zoom='90%'")
+    time.sleep(1)  # Small pause to ensure the page has adjusted to the scroll
+
+    # Click on the calendar button
+    calendar_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "calendar_toggle")))
+    calendar_button.click()
+
+    # Calculate the date one week from today
+    target_date = datetime.today() + timedelta(days=7)
+    target_day = target_date.day
+    target_month = target_date.month - 1  # DatePicker months are 0-indexed
+    target_year = target_date.year
+
+    # Wait for the datepicker to appear
+    WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "datepicker")))
+
+    # Find and click the correct date
+    date_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, f"//td[@data-handler='selectDay'][@data-month='{target_month}'][@data-year='{target_year}']/a[text()='{target_day}']"))
+    )
+    date_button.click()
+
+    # Wait for the datepicker to become visible
+    WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "datepicker")))
+
+    # Select the target date
+    target_date_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, date_selector)))
+    target_date_element.click()
+
 
     # Wait for the schedule page to load
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "page-schedule")))
