@@ -63,6 +63,7 @@ def convert_vtt_to_ass(vtt_path, ass_path):
         command = [
             'ffmpeg',
             '-i', vtt_path,
+            '-c:s', 'ass',
             ass_path
         ]
         subprocess.run(command, check=True)
