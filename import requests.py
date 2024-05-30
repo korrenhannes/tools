@@ -16,7 +16,8 @@ def download_youtube_video(video_url, output_path, username, password):
     try:
         # Temporary paths for video and subtitles
         temp_video_path = output_path.replace(".mp4", "_temp.mp4")
-        temp_subs_path = output_path.replace(".mp4", ".en.vtt")
+        temp_subs_path_vtt = output_path.replace(".mp4", ".en.vtt")
+        temp_subs_path_srt = output_path.replace(".mp4", ".en.srt")
 
         ydl_opts = {
             'format': 'best',
@@ -33,19 +34,41 @@ def download_youtube_video(video_url, output_path, username, password):
         print(f"Video and subtitles downloaded successfully")
 
         # Check the existence of the actual subtitle file
-        subtitle_files = [f for f in os.listdir(os.path.dirname(temp_subs_path)) if f.endswith('.vtt')]
+        subtitle_files = [f for f in os.listdir(os.path.dirname(temp_subs_path_vtt)) if f.endswith('.vtt')]
         if not subtitle_files:
             raise FileNotFoundError("No subtitle files found.")
         
         # Ensure correct subtitle file path
-        actual_subs_path = os.path.join(os.path.dirname(temp_subs_path), subtitle_files[0])
+        actual_subs_path_vtt = os.path.join(os.path.dirname(temp_subs_path_vtt), subtitle_files[0])
+
+        # Convert VTT subtitles to SRT format
+        convert_vtt_to_srt(actual_subs_path_vtt, temp_subs_path_srt)
 
         # Embed subtitles into the video
-        embed_subtitles(temp_video_path, actual_subs_path, output_path)
+        embed_subtitles(temp_video_path, temp_subs_path_srt, output_path)
         print(f"Video with subtitles saved to {output_path}")
     
     except Exception as e:
         print(f"An error occurred: {e}")
+
+def convert_vtt_to_srt(vtt_path, srt_path):
+    """
+    Converts VTT subtitles to SRT format using ffmpeg.
+    
+    Parameters:
+    vtt_path (str): Path to the VTT subtitles file.
+    srt_path (str): Path where the converted SRT subtitles will be saved.
+    """
+    try:
+        command = [
+            'ffmpeg',
+            '-i', vtt_path,
+            srt_path
+        ]
+        subprocess.run(command, check=True)
+        print(f"Subtitles converted to SRT format successfully: {srt_path}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error converting subtitles: {e}")
 
 def embed_subtitles(video_path, subs_path, output_path):
     """
