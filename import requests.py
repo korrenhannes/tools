@@ -17,7 +17,7 @@ def download_youtube_video(video_url, output_path, username, password):
         # Temporary paths for video and subtitles
         temp_video_path = output_path.replace(".mp4", "_temp.mp4")
         temp_subs_path_vtt = output_path.replace(".mp4", ".en.vtt")
-        temp_subs_path_srt = output_path.replace(".mp4", ".en.srt")
+        temp_subs_path_ass = output_path.replace(".mp4", ".en.ass")
 
         ydl_opts = {
             'format': 'best',
@@ -41,32 +41,32 @@ def download_youtube_video(video_url, output_path, username, password):
         # Ensure correct subtitle file path
         actual_subs_path_vtt = os.path.join(os.path.dirname(temp_subs_path_vtt), subtitle_files[0])
 
-        # Convert VTT subtitles to SRT format
-        convert_vtt_to_srt(actual_subs_path_vtt, temp_subs_path_srt)
+        # Convert VTT subtitles to ASS format
+        convert_vtt_to_ass(actual_subs_path_vtt, temp_subs_path_ass)
 
         # Embed subtitles into the video
-        embed_subtitles(temp_video_path, temp_subs_path_srt, output_path)
+        embed_subtitles(temp_video_path, temp_subs_path_ass, output_path)
         print(f"Video with subtitles saved to {output_path}")
     
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def convert_vtt_to_srt(vtt_path, srt_path):
+def convert_vtt_to_ass(vtt_path, ass_path):
     """
-    Converts VTT subtitles to SRT format using ffmpeg.
+    Converts VTT subtitles to ASS format using ffmpeg.
     
     Parameters:
     vtt_path (str): Path to the VTT subtitles file.
-    srt_path (str): Path where the converted SRT subtitles will be saved.
+    ass_path (str): Path where the converted ASS subtitles will be saved.
     """
     try:
         command = [
             'ffmpeg',
             '-i', vtt_path,
-            srt_path
+            ass_path
         ]
         subprocess.run(command, check=True)
-        print(f"Subtitles converted to SRT format successfully: {srt_path}")
+        print(f"Subtitles converted to ASS format successfully: {ass_path}")
     except subprocess.CalledProcessError as e:
         print(f"Error converting subtitles: {e}")
 
